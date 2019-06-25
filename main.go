@@ -30,8 +30,9 @@ func txHandler(ctx context.Context, client ClientFaker, auth *bind.TransactOpts,
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := common.HexToAddress(pat.Param(r, "to"))
 
-		a, errb := big.NewInt(0).SetString(pat.Param(r, "amount"), 10)
-		if errb {
+		a := new(big.Int)
+		a, ok := a.SetString(pat.Param(r, "amount"), 10)
+		if !ok {
 			http.Error(w, "Couldn't convert amount to big.Int", 400)
 			return
 		}

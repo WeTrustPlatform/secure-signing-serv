@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -19,11 +19,17 @@ import (
 func Test_txHandler(t *testing.T) {
 	ctx := context.Background()
 
-	ownerKey, _ := crypto.GenerateKey()
+	ownerKey, err := crypto.GenerateKey()
+	if err != nil {
+		t.Fatal(err)
+	}
 	owner := bind.NewKeyedTransactor(ownerKey)
 	ownerAuth := bind.NewKeyedTransactor(ownerKey)
 
-	testerKey, _ := crypto.GenerateKey()
+	testerKey, err := crypto.GenerateKey()
+	if err != nil {
+		t.Fatal(err)
+	}
 	tester := bind.NewKeyedTransactor(testerKey)
 
 	client := backends.NewSimulatedBackend(core.GenesisAlloc{
@@ -39,14 +45,15 @@ func Test_txHandler(t *testing.T) {
 
 	mux.HandleFunc(pat.Post("/tx/:to/:amount/:gasLimit/:gasPrice/:data"), txHandler(ctx, client, ownerAuth, ownerKey))
 
-	mux.ServeHTTP(httptest.NewRecorder(), req)
+	rr := httptest.NewRecorder()
+	mux.ServeHTTP(rr, req)
 
 	client.Commit()
 
 	t.Run("Can proxy a simple tx", func(t *testing.T) {
-		// if got := txHandler(tt.args.ctx, tt.args.client, tt.args.key); !reflect.DeepEqual(got, tt.want) {
-		// 	t.Errorf("txHandler() = %v, want %v", got, tt.want)
-		// }
-		fmt.Println(client.BalanceAt(ctx, tester.From, nil))
+		want := big.NewInt(10000000000)
+		if got, _ := client.BalanceAt(ctx, tester.From, nil); !reflect.DeepEqual(got, want) {
+			t.Errorf("txHandler() = %v, want %v", got, want)
+		}
 	})
 }
