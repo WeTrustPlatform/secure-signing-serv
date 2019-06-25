@@ -16,25 +16,8 @@ import (
 	"goji.io/pat"
 )
 
-func main() {
-	client, err := ethclient.Dial(os.Getenv("RPC_ENDPOINT"))
-	if err != nil {
-		panic(err)
-	}
-
-	keyJSON := os.Getenv("PRIV_KEY")
-	pass := os.Getenv("PASSPHRASE")
-	key, err := keystore.DecryptKey([]byte(keyJSON), pass)
-	if err != nil {
-		panic(err)
-	}
-
-	ctx := context.Background()
-
-	mux := goji.NewMux()
-	mux.Use(basicAuth)
-
-	mux.HandleFunc(pat.Get("/tx/:to"), func(w http.ResponseWriter, r *http.Request) {
+func txHandler(ctx context.Context, client *ethclient.Client, key *keystore.Key) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		t := common.HexToAddress(pat.Param(r, "to"))
 
 		a, errb := big.NewInt(0).SetString(pat.Param(r, "amount"), 10)
@@ -72,7 +55,28 @@ func main() {
 			http.Error(w, err.Error(), 500)
 			return
 		}
-	})
+	}
+}
+
+func main() {
+	client, err := ethclient.Dial(os.Getenv("RPC_ENDPOINT"))
+	if err != nil {
+		panic(err)
+	}
+
+	keyJSON := os.Getenv("PRIV_KEY")
+	pass := os.Getenv("PASSPHRASE")
+	key, err := keystore.DecryptKey([]byte(keyJSON), pass)
+	if err != nil {
+		panic(err)
+	}
+
+	ctx := context.Background()
+
+	mux := goji.NewMux()
+	mux.Use(basicAuth)
+
+	mux.HandleFunc(pat.Get("/tx/:to"), txHandler(ctx, client, key))
 
 	http.ListenAndServe(":"+os.Getenv("PORT"), mux)
 }
