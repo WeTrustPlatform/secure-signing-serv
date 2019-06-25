@@ -19,22 +19,15 @@ import (
 func Test_txHandler(t *testing.T) {
 	ctx := context.Background()
 
-	ownerKey, err := crypto.GenerateKey()
-	if err != nil {
-		t.Fatal(err)
-	}
+	ownerKey, _ := crypto.GenerateKey()
 	owner := bind.NewKeyedTransactor(ownerKey)
-	ownerAuth := bind.NewKeyedTransactor(ownerKey)
 
-	testerKey, err := crypto.GenerateKey()
-	if err != nil {
-		t.Fatal(err)
-	}
+	testerKey, _ := crypto.GenerateKey()
 	tester := bind.NewKeyedTransactor(testerKey)
 
 	client := backends.NewSimulatedBackend(core.GenesisAlloc{
 		owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
-	}, 4712388)
+	}, 4000000)
 
 	mux := goji.NewMux()
 
@@ -43,7 +36,12 @@ func Test_txHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mux.HandleFunc(pat.Post("/tx/:to/:amount/:gasLimit/:gasPrice/:data"), txHandler(ctx, client, ownerAuth, ownerKey))
+	mux.HandleFunc(pat.Post("/tx/:to/:amount/:gasLimit/:gasPrice/:data"), txHandler(
+		ctx,
+		client,
+		owner.From,
+		ownerKey,
+	))
 
 	rr := httptest.NewRecorder()
 	mux.ServeHTTP(rr, req)

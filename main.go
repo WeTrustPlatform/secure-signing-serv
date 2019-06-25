@@ -7,10 +7,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -26,7 +24,7 @@ type ClientFaker interface {
 	ethereum.TransactionSender
 }
 
-func txHandler(ctx context.Context, client ClientFaker, auth *bind.TransactOpts, key *ecdsa.PrivateKey) http.HandlerFunc {
+func txHandler(ctx context.Context, client ClientFaker, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := common.HexToAddress(pat.Param(r, "to"))
 
@@ -51,7 +49,7 @@ func txHandler(ctx context.Context, client ClientFaker, auth *bind.TransactOpts,
 
 		d := []byte(pat.Param(r, "data"))
 
-		nonce, err := client.NonceAt(ctx, auth.From, nil)
+		nonce, err := client.NonceAt(ctx, owner, nil)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
@@ -82,11 +80,6 @@ func main() {
 		panic(err)
 	}
 
-	auth, err := bind.NewTransactor(strings.NewReader(string(keyJSON[:])), pass)
-	if err != nil {
-		panic(err)
-	}
-
 	ctx := context.Background()
 
 	mux := goji.NewMux()
@@ -95,7 +88,7 @@ func main() {
 	mux.HandleFunc(pat.Post("/tx/:to/:amount/:gasLimit/:gasPrice/:data"), txHandler(
 		ctx,
 		client,
-		auth,
+		key.Address,
 		key.PrivateKey))
 
 	http.ListenAndServe(":"+os.Getenv("PORT"), mux)
