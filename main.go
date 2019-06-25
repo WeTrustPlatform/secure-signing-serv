@@ -65,7 +65,9 @@ func main() {
 
 		tx := types.NewTransaction(nonce, t, a, gl, gp, d)
 
-		err = client.SendTransaction(ctx, tx)
+		signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, key.PrivateKey)
+
+		err = client.SendTransaction(ctx, signedTx)
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return
