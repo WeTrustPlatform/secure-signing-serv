@@ -1,0 +1,29 @@
+branches:
+  only:
+    - master
+
+language: go
+
+go:
+  - "1.12"
+
+env:
+  - GO111MODULE=on
+
+before_script:
+  - GO_FILES=$(find . -iname '*.go' -type f)
+  - go get golang.org/x/lint/golint
+  - go get honnef.co/go/tools/cmd/staticcheck
+  - go get github.com/fzipp/gocyclo
+
+script:
+  - go test -v -race ./...
+  - go vet ./...
+  - staticcheck ./...
+  - gocyclo -over 19 $GO_FILES
+  - golint -set_exit_status $(go list ./...)
+
+cache:
+  directories:
+    - $HOME/.cache/go-build
+    - $HOME/gopath/pkg/mod
