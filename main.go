@@ -91,7 +91,7 @@ func main() {
 	mux := goji.NewMux()
 	mux.Use(basicAuth)
 
-	mux.HandleFunc(pat.Get("/tx/:to/:amount/:gasLimit/:gasPrice/:data"), txHandler(
+	mux.HandleFunc(pat.Post("/tx/:to/:amount/:gasLimit/:gasPrice/:data"), txHandler(
 		ctx,
 		client,
 		auth,
