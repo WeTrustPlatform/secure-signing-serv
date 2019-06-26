@@ -28,8 +28,7 @@ func Test_txHandler(t *testing.T) {
 		owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 	}, 4000000)
 
-	var amount int64 = 10000000000
-	query := fmt.Sprintf("/tx?to=%s&amount=%d&gasLimit=2000000&gasPrice=1", tester.From.Hex(), amount)
+	query := fmt.Sprintf("/tx?to=%s&amount=%d&gasLimit=%d&gasPrice=%d", tester.From.Hex(), 10000000000, 30000, 1)
 	req, err := http.NewRequest("POST", query, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -43,9 +42,9 @@ func Test_txHandler(t *testing.T) {
 	client.Commit()
 
 	t.Run("Can proxy a simple tx", func(t *testing.T) {
-		want := big.NewInt(amount)
+		want := big.NewInt(10000000000)
 		if got, _ := client.BalanceAt(ctx, tester.From, nil); !reflect.DeepEqual(got, want) {
-			t.Errorf("txHandler() = %v, want %v", got, want)
+			t.Errorf("tester balance = %v, want %v", got, want)
 		}
 	})
 }
