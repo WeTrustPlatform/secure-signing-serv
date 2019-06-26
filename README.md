@@ -16,4 +16,4 @@ A micro service to store an ethereum key and perform whitelisted transactions on
 
 Sending a simple transaction:
 
-    curl -X POST "https://your-api-key:your-api-secret@domain-name.com/tx?to=0x5597285BbE81BaF351e2C0884e9a5f4416958862&amount=1000000000000000&gasLimit=21000&gasPrice=20000000000&data=abc"
+    curl -X POST "https://your-api-key:your-api-secret@domain-name.com/tx?to=0x5597285BbE81BaF351e2C0884e9a5f4416958862&amount=1000000000000000&gasPrice=20000000000&data=abc"
