@@ -72,6 +72,12 @@ func txHandler(ctx context.Context, client ClientFaker, owner common.Address, ke
 }
 
 func main() {
+	for _, v := range []string{"RPC_ENDPOINT", "PRIV_KEY", "PASSPHRASE", "PORT", "BASIC_AUTH_USER", "BASIC_AUTH_PASS"} {
+		if os.Getenv(v) == "" {
+			panic("Environment variable not set: " + v)
+		}
+	}
+
 	client, err := ethclient.Dial(os.Getenv("RPC_ENDPOINT"))
 	if err != nil {
 		panic(err)
