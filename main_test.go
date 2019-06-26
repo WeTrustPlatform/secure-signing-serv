@@ -13,8 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/crypto"
-	"goji.io"
-	"goji.io/pat"
 )
 
 func Test_txHandler(t *testing.T) {
@@ -30,24 +28,22 @@ func Test_txHandler(t *testing.T) {
 		owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 	}, 4000000)
 
-	mux := goji.NewMux()
-
 	var amount int64 = 10000000000
-	query := fmt.Sprintf("/tx/%s/%d/2000000/1/a", tester.From.Hex(), amount)
+	query := fmt.Sprintf("/tx?to=%s&amount=%d&gasLimit=2000000&gasPrice=1", tester.From.Hex(), amount)
 	req, err := http.NewRequest("POST", query, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	mux.HandleFunc(pat.Post("/tx/:to/:amount/:gasLimit/:gasPrice/:data"), txHandler(
+	h := txHandler(
 		ctx,
 		client,
 		owner.From,
 		ownerKey,
-	))
+	)
 
 	rr := httptest.NewRecorder()
-	mux.ServeHTTP(rr, req)
+	h.ServeHTTP(rr, req)
 
 	client.Commit()
 

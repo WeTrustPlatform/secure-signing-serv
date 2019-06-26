@@ -5,8 +5,8 @@ import (
 	"os"
 )
 
-func basicAuth(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func basicAuth(h http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		user, pass, _ := r.BasicAuth()
 
 		if user != os.Getenv("BASIC_AUTH_USER") || pass != os.Getenv("BASIC_AUTH_PASS") {
@@ -16,5 +16,5 @@ func basicAuth(h http.Handler) http.Handler {
 		}
 
 		h.ServeHTTP(w, r)
-	})
+	}
 }

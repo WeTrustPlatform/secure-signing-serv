@@ -13,9 +13,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-
-	"goji.io"
-	"goji.io/pat"
 )
 
 // ClientFaker allow passing an ethclient.Client or a backend.SimulatedBackend
@@ -26,28 +23,33 @@ type ClientFaker interface {
 
 func txHandler(ctx context.Context, client ClientFaker, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		t := common.HexToAddress(pat.Param(r, "to"))
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+		}
+
+		t := common.HexToAddress(r.Form.Get("to"))
 
 		a := new(big.Int)
-		a, ok := a.SetString(pat.Param(r, "amount"), 10)
+		a, ok := a.SetString(r.Form.Get("amount"), 10)
 		if !ok {
 			http.Error(w, "Couldn't convert amount to big.Int", 400)
 			return
 		}
 
-		gl, err := strconv.ParseUint(pat.Param(r, "gasLimit"), 10, 64)
+		gl, err := strconv.ParseUint(r.Form.Get("gasLimit"), 10, 64)
 		if err != nil {
 			http.Error(w, "Couldn't parse gasLimit to uint64", 400)
 			return
 		}
 
-		gp, ok := big.NewInt(0).SetString(pat.Param(r, "gasPrice"), 10)
+		gp, ok := big.NewInt(0).SetString(r.Form.Get("gasPrice"), 10)
 		if !ok {
 			http.Error(w, "Couldn't convert gasPrice to big.Int", 400)
 			return
 		}
 
-		d := []byte(pat.Param(r, "data"))
+		d := []byte(r.Form.Get("data"))
 
 		nonce, err := client.NonceAt(ctx, owner, nil)
 		if err != nil {
@@ -94,14 +96,11 @@ func main() {
 
 	ctx := context.Background()
 
-	mux := goji.NewMux()
-	mux.Use(basicAuth)
-
-	mux.HandleFunc(pat.Post("/tx/:to/:amount/:gasLimit/:gasPrice/:data"), txHandler(
+	http.HandleFunc("/tx", basicAuth(txHandler(
 		ctx,
 		client,
 		key.Address,
-		key.PrivateKey))
+		key.PrivateKey)))
 
-	http.ListenAndServe(":"+os.Getenv("PORT"), mux)
+	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }
