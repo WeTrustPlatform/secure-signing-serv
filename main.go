@@ -6,7 +6,6 @@ import (
 	"math/big"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -19,6 +18,7 @@ import (
 type ClientFaker interface {
 	ethereum.ChainStateReader
 	ethereum.TransactionSender
+	ethereum.GasEstimator
 }
 
 func txHandler(ctx context.Context, client ClientFaker, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
@@ -37,12 +37,6 @@ func txHandler(ctx context.Context, client ClientFaker, owner common.Address, ke
 			return
 		}
 
-		gl, err := strconv.ParseUint(r.Form.Get("gasLimit"), 10, 64)
-		if err != nil {
-			http.Error(w, "Couldn't parse gasLimit to uint64", 400)
-			return
-		}
-
 		gp, ok := big.NewInt(0).SetString(r.Form.Get("gasPrice"), 10)
 		if !ok {
 			http.Error(w, "Couldn't convert gasPrice to big.Int", 400)
@@ -57,7 +51,18 @@ func txHandler(ctx context.Context, client ClientFaker, owner common.Address, ke
 			return
 		}
 
-		tx := types.NewTransaction(nonce, t, a, gl, gp, d)
+		gas, err := client.EstimateGas(ctx, ethereum.CallMsg{
+			From:  owner,
+			To:    &t,
+			Value: a,
+			Data:  d,
+		})
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+
+		tx := types.NewTransaction(nonce, t, a, gas, gp, d)
 
 		signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, key)
 		if err != nil {
