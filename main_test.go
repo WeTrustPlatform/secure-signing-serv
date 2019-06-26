@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
@@ -31,7 +32,9 @@ func Test_txHandler(t *testing.T) {
 
 	mux := goji.NewMux()
 
-	req, err := http.NewRequest("POST", "/tx/"+tester.From.Hex()+"/10000000000/2000000/1/a", nil)
+	var amount int64 = 10000000000
+	query := fmt.Sprintf("/tx/%s/%d/2000000/1/a", tester.From.Hex(), amount)
+	req, err := http.NewRequest("POST", query, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +52,7 @@ func Test_txHandler(t *testing.T) {
 	client.Commit()
 
 	t.Run("Can proxy a simple tx", func(t *testing.T) {
-		want := big.NewInt(10000000000)
+		want := big.NewInt(amount)
 		if got, _ := client.BalanceAt(ctx, tester.From, nil); !reflect.DeepEqual(got, want) {
 			t.Errorf("txHandler() = %v, want %v", got, want)
 		}
