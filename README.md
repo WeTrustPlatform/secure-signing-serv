@@ -14,4 +14,11 @@ A micro service to store an ethereum key and perform whitelisted transactions on
 
 ## Usage
 
-    curl -X POST "https://your-api-key:your-api-secret@domain-name.com/tx/to-address/amount-in-wei/gas-limit/gas-price/data-field"
+Sending a simple transaction:
+
+    curl -X POST "https://your-api-key:your-api-secret@domain-name.com/tx/to-address/amount/gas-limit/gas-price/data-field"
+
+`to-address` is the ethereum address of the receiver (for example `0x5597285BbE81BaF351e2C0884e9a5f4416958862`)
+`amount` is the amount transfered to the receiver in wei (for example `1000000000000000`)
+`gas-limit` is the maximum number of gas (for example `21000`)
+`ges-price` is how much wei you're ready to pay per gas unit (for example `20000000000`)

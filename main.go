@@ -68,6 +68,8 @@ func txHandler(ctx context.Context, client ClientFaker, owner common.Address, ke
 			http.Error(w, err.Error(), 500)
 			return
 		}
+
+		w.Write([]byte(tx.Hash().String()))
 	}
 }
 
