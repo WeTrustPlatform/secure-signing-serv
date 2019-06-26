@@ -1,4 +1,4 @@
-# secure-signing-serv
+# Secure Signing Service (3S)
 
 A micro service to store an ethereum key and perform whitelisted transactions on your behalf
 
