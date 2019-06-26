@@ -16,8 +16,6 @@ import (
 )
 
 func Test_txHandler(t *testing.T) {
-	ctx := context.Background()
-
 	ownerKey, _ := crypto.GenerateKey()
 	owner := bind.NewKeyedTransactor(ownerKey)
 
@@ -34,7 +32,7 @@ func Test_txHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	h := txHandler(ctx, client, owner.From, ownerKey)
+	h := txHandler(client, owner.From, ownerKey)
 
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, req)
@@ -43,7 +41,7 @@ func Test_txHandler(t *testing.T) {
 
 	t.Run("Can proxy a simple tx", func(t *testing.T) {
 		want := big.NewInt(10000000000)
-		if got, _ := client.BalanceAt(ctx, tester.From, nil); !reflect.DeepEqual(got, want) {
+		if got, _ := client.BalanceAt(context.Background(), tester.From, nil); !reflect.DeepEqual(got, want) {
 			t.Errorf("tester balance = %v, want %v", got, want)
 		}
 	})

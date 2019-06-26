@@ -21,8 +21,10 @@ type ClientFaker interface {
 	ethereum.GasEstimator
 }
 
-func txHandler(ctx context.Context, client ClientFaker, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
+func txHandler(client ClientFaker, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.Background()
+
 		err := r.ParseForm()
 		if err != nil {
 			http.Error(w, err.Error(), 400)
@@ -99,10 +101,7 @@ func main() {
 		panic(err)
 	}
 
-	ctx := context.Background()
-
 	http.HandleFunc("/tx", basicAuth(txHandler(
-		ctx,
 		client,
 		key.Address,
 		key.PrivateKey)))
