@@ -35,12 +35,7 @@ func Test_txHandler(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	h := txHandler(
-		ctx,
-		client,
-		owner.From,
-		ownerKey,
-	)
+	h := txHandler(ctx, client, owner.From, ownerKey)
 
 	rr := httptest.NewRecorder()
 	h.ServeHTTP(rr, req)

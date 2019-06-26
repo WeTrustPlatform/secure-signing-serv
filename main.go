@@ -71,7 +71,7 @@ func txHandler(ctx context.Context, client ClientFaker, owner common.Address, ke
 			return
 		}
 
-		w.Write([]byte(tx.Hash().String()))
+		w.Write([]byte(signedTx.Hash().String()))
 	}
 }
 
