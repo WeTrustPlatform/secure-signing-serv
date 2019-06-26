@@ -58,6 +58,10 @@ func txHandler(ctx context.Context, client ClientFaker, owner common.Address, ke
 		tx := types.NewTransaction(nonce, t, a, gl, gp, d)
 
 		signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, key)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
 
 		err = client.SendTransaction(ctx, signedTx)
 		if err != nil {
