@@ -21,14 +21,14 @@ func checkTransaction(L *lua.LState) *Transaction {
 	return nil
 }
 
-// Getter and setter for the Transaction#To
+// Getter and setter for the Transaction:to
 func transactionGetName(L *lua.LState) int {
 	p := checkTransaction(L)
 	L.Push(lua.LString(p.To))
 	return 1
 }
 
-// Getter and setter for the Transaction#Value
+// Getter and setter for the Transaction:value
 func transactionGetValue(L *lua.LState) int {
 	p := checkTransaction(L)
 	L.Push(lua.LString(p.Value))
@@ -44,17 +44,15 @@ func newTransaction(L *lua.LState, transaction *Transaction) *lua.LUserData {
 	return ud
 }
 
-var transactionMethods = map[string]lua.LGFunction{
-	"to":    transactionGetName,
-	"value": transactionGetValue,
-}
-
-// Registers my transaction type to given L.
+// Registers the transaction type
 func registerTransactionType(L *lua.LState) {
 	mt := L.NewTypeMetatable("transaction")
 	L.SetGlobal("transaction", mt)
 	// methods
-	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), transactionMethods))
+	L.SetField(mt, "__index", L.SetFuncs(L.NewTable(), map[string]lua.LGFunction{
+		"to":    transactionGetName,
+		"value": transactionGetValue,
+	}))
 }
 
 func validate(rules string, tx *types.Transaction) (bool, error) {
