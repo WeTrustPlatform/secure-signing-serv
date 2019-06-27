@@ -28,10 +28,10 @@ func txHandler(client Client, owner common.Address, key *ecdsa.PrivateKey) http.
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 
-		t := common.HexToAddress(r.Form.Get("to"))
+		to := common.HexToAddress(r.Form.Get("to"))
 
-		a := new(big.Int)
-		a, ok := a.SetString(r.Form.Get("amount"), 10)
+		amount := new(big.Int)
+		amount, ok := amount.SetString(r.Form.Get("amount"), 10)
 		if !ok {
 			http.Error(w, "Couldn't convert amount to big.Int", http.StatusBadRequest)
 			return
@@ -43,7 +43,15 @@ func txHandler(client Client, owner common.Address, key *ecdsa.PrivateKey) http.
 			return
 		}
 
-		d := []byte(r.Form.Get("data"))
+		var data []byte
+		if r.Body != nil {
+			data, err = ioutil.ReadAll(r.Body)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			defer r.Body.Close()
+		}
 
 		nonce, err := client.NonceAt(ctx, owner, nil)
 		if err != nil {
@@ -53,16 +61,16 @@ func txHandler(client Client, owner common.Address, key *ecdsa.PrivateKey) http.
 
 		gas, err := client.EstimateGas(ctx, ethereum.CallMsg{
 			From:  owner,
-			To:    &t,
-			Value: a,
-			Data:  d,
+			To:    &to,
+			Value: amount,
+			Data:  data,
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		tx := types.NewTransaction(nonce, t, a, gas, gp, d)
+		tx := types.NewTransaction(nonce, to, amount, gas, gp, data)
 
 		rules, err := ioutil.ReadFile("rules.lua")
 		if err != nil {
