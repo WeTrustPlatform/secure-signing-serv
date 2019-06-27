@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/ecdsa"
+	"io/ioutil"
 	"math/big"
 	"net/http"
 	"os"
@@ -27,7 +28,7 @@ func txHandler(client ClientFaker, owner common.Address, key *ecdsa.PrivateKey) 
 
 		err := r.ParseForm()
 		if err != nil {
-			http.Error(w, err.Error(), 400)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 
 		t := common.HexToAddress(r.Form.Get("to"))
@@ -35,13 +36,13 @@ func txHandler(client ClientFaker, owner common.Address, key *ecdsa.PrivateKey) 
 		a := new(big.Int)
 		a, ok := a.SetString(r.Form.Get("amount"), 10)
 		if !ok {
-			http.Error(w, "Couldn't convert amount to big.Int", 400)
+			http.Error(w, "Couldn't convert amount to big.Int", http.StatusBadRequest)
 			return
 		}
 
 		gp, ok := big.NewInt(0).SetString(r.Form.Get("gasPrice"), 10)
 		if !ok {
-			http.Error(w, "Couldn't convert gasPrice to big.Int", 400)
+			http.Error(w, "Couldn't convert gasPrice to big.Int", http.StatusBadRequest)
 			return
 		}
 
@@ -49,7 +50,7 @@ func txHandler(client ClientFaker, owner common.Address, key *ecdsa.PrivateKey) 
 
 		nonce, err := client.NonceAt(ctx, owner, nil)
 		if err != nil {
-			http.Error(w, err.Error(), 500)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -60,21 +61,36 @@ func txHandler(client ClientFaker, owner common.Address, key *ecdsa.PrivateKey) 
 			Data:  d,
 		})
 		if err != nil {
-			http.Error(w, err.Error(), 500)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		tx := types.NewTransaction(nonce, t, a, gas, gp, d)
 
+		rules, err := ioutil.ReadFile("rules.lua")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		valid, err := validate(string(rules), tx)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if !valid {
+			http.Error(w, "Invalid transaction", http.StatusUnauthorized)
+			return
+		}
+
 		signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, key)
 		if err != nil {
-			http.Error(w, err.Error(), 500)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		err = client.SendTransaction(ctx, signedTx)
 		if err != nil {
-			http.Error(w, err.Error(), 500)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
