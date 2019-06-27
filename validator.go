@@ -22,23 +22,15 @@ func checkTransaction(L *lua.LState) *Transaction {
 }
 
 // Getter and setter for the Transaction#To
-func transactionGetSetName(L *lua.LState) int {
+func transactionGetName(L *lua.LState) int {
 	p := checkTransaction(L)
-	if L.GetTop() == 2 {
-		p.To = L.CheckString(2)
-		return 0
-	}
 	L.Push(lua.LString(p.To))
 	return 1
 }
 
 // Getter and setter for the Transaction#Value
-func transactionGetSetValue(L *lua.LState) int {
+func transactionGetValue(L *lua.LState) int {
 	p := checkTransaction(L)
-	if L.GetTop() == 2 {
-		p.Value = L.CheckString(2)
-		return 0
-	}
 	L.Push(lua.LString(p.Value))
 	return 1
 }
@@ -53,8 +45,8 @@ func newTransaction(L *lua.LState, transaction *Transaction) *lua.LUserData {
 }
 
 var transactionMethods = map[string]lua.LGFunction{
-	"to":    transactionGetSetName,
-	"value": transactionGetSetValue,
+	"to":    transactionGetName,
+	"value": transactionGetValue,
 }
 
 // Registers my transaction type to given L.
