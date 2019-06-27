@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/ecdsa"
+	"io/ioutil"
 	"math/big"
 	"net/http"
 	"os"
@@ -65,6 +66,21 @@ func txHandler(client ClientFaker, owner common.Address, key *ecdsa.PrivateKey) 
 		}
 
 		tx := types.NewTransaction(nonce, t, a, gas, gp, d)
+
+		rules, err := ioutil.ReadFile("rules.lua")
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		valid, err := validate(string(rules), tx)
+		if err != nil {
+			http.Error(w, err.Error(), 500)
+			return
+		}
+		if !valid {
+			http.Error(w, "Invalid transaction", 401)
+			return
+		}
 
 		signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, key)
 		if err != nil {
