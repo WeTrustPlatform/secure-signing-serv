@@ -28,14 +28,15 @@ func deployHandler(client Client, owner common.Address, key *ecdsa.PrivateKey) h
 		}
 
 		var data []byte
-		if r.Body != nil {
-			data, err = ioutil.ReadAll(r.Body)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			defer r.Body.Close()
+		if r.Body == nil {
+			http.Error(w, "Request body is mandatory for contract creation", http.StatusBadRequest)
 		}
+		data, err = ioutil.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer r.Body.Close()
 		data = common.Hex2Bytes(string(data))
 
 		nonce, err := client.NonceAt(ctx, owner, nil)
