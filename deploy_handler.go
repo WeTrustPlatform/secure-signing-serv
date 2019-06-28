@@ -36,6 +36,7 @@ func deployHandler(client Client, owner common.Address, key *ecdsa.PrivateKey) h
 			}
 			defer r.Body.Close()
 		}
+		data = common.Hex2Bytes(string(data))
 
 		nonce, err := client.NonceAt(ctx, owner, nil)
 		if err != nil {
