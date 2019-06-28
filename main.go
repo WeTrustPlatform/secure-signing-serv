@@ -4,9 +4,17 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
+
+// Client allow passing an ethclient.Client or a backend.SimulatedBackend
+type Client interface {
+	ethereum.ChainStateReader
+	ethereum.TransactionSender
+	ethereum.GasEstimator
+}
 
 func main() {
 	for _, v := range []string{"RPC_ENDPOINT", "PRIV_KEY", "PASSPHRASE", "PORT", "BASIC_AUTH_USER", "BASIC_AUTH_PASS"} {
@@ -28,6 +36,11 @@ func main() {
 	}
 
 	http.HandleFunc("/tx", basicAuth(txHandler(
+		client,
+		key.Address,
+		key.PrivateKey)))
+
+	http.HandleFunc("/deploy", basicAuth(deployHandler(
 		client,
 		key.Address,
 		key.PrivateKey)))
