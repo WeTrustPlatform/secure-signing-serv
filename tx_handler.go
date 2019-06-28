@@ -12,13 +12,6 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-// Client allow passing an ethclient.Client or a backend.SimulatedBackend
-type Client interface {
-	ethereum.ChainStateReader
-	ethereum.TransactionSender
-	ethereum.GasEstimator
-}
-
 func txHandler(client Client, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.Background()
