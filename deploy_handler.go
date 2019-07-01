@@ -12,7 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-func deployHandler(client Client, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
+func deployHandler(client Client, rules []byte, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.Background()
 
@@ -27,11 +27,10 @@ func deployHandler(client Client, owner common.Address, key *ecdsa.PrivateKey) h
 			return
 		}
 
-		var data []byte
 		if r.Body == nil {
 			http.Error(w, "Request body is mandatory for contract creation", http.StatusBadRequest)
 		}
-		data, err = ioutil.ReadAll(r.Body)
+		data, err := ioutil.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -56,6 +55,16 @@ func deployHandler(client Client, owner common.Address, key *ecdsa.PrivateKey) h
 		}
 
 		tx := types.NewContractCreation(nonce, big.NewInt(0), gas, gp, data)
+
+		valid, err := validate(string(rules), tx)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if !valid {
+			http.Error(w, "Invalid transaction", http.StatusUnauthorized)
+			return
+		}
 
 		signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, key)
 		if err != nil {

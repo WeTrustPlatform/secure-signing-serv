@@ -23,6 +23,8 @@ func Test_txHandler(t *testing.T) {
 	testerKey, _ := crypto.GenerateKey()
 	tester := bind.NewKeyedTransactor(testerKey)
 
+	rules := []byte(`function validate(tx) return true end`)
+
 	t.Run("Can proxy a simple tx", func(t *testing.T) {
 		client := backends.NewSimulatedBackend(core.GenesisAlloc{
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
@@ -34,7 +36,7 @@ func Test_txHandler(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		h := txHandler(client, owner.From, ownerKey)
+		h := txHandler(client, rules, owner.From, ownerKey)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -58,7 +60,7 @@ func Test_txHandler(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		h := txHandler(client, owner.From, ownerKey)
+		h := txHandler(client, rules, owner.From, ownerKey)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)

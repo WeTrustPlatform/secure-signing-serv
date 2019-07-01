@@ -25,6 +25,8 @@ func Test_deployHandler(t *testing.T) {
 	ownerKey, _ := crypto.GenerateKey()
 	owner := bind.NewKeyedTransactor(ownerKey)
 
+	rules := []byte(`function validate(tx) return true end`)
+
 	t.Run("Can proxy a simple contract deployment", func(t *testing.T) {
 		client := backends.NewSimulatedBackend(core.GenesisAlloc{
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
@@ -38,7 +40,7 @@ func Test_deployHandler(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		h := deployHandler(client, owner.From, ownerKey)
+		h := deployHandler(client, rules, owner.From, ownerKey)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)

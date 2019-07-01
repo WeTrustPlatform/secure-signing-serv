@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -35,13 +36,20 @@ func main() {
 		panic(err)
 	}
 
+	rules, err := ioutil.ReadFile("rules.lua")
+	if err != nil {
+		panic(err)
+	}
+
 	http.HandleFunc("/tx", basicAuth(txHandler(
 		client,
+		rules,
 		key.Address,
 		key.PrivateKey)))
 
 	http.HandleFunc("/deploy", basicAuth(deployHandler(
 		client,
+		rules,
 		key.Address,
 		key.PrivateKey)))
 

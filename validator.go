@@ -7,8 +7,12 @@ import (
 
 func txToLTable(L *lua.LState, tx *types.Transaction) *lua.LTable {
 	t := L.NewTable()
-	L.SetField(t, "to", lua.LString(tx.To().String()))
-	L.SetField(t, "value", lua.LString(tx.Value().String()))
+	if tx.To() != nil {
+		L.SetField(t, "to", lua.LString(tx.To().String()))
+	}
+	if tx.Value() != nil {
+		L.SetField(t, "value", lua.LString(tx.Value().String()))
+	}
 	return t
 }
 
