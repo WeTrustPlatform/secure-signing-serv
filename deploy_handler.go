@@ -19,6 +19,7 @@ func deployHandler(client Client, rules []byte, owner common.Address, key *ecdsa
 		err := r.ParseForm()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 
 		gp, ok := big.NewInt(0).SetString(r.Form.Get("gasPrice"), 10)
@@ -29,6 +30,7 @@ func deployHandler(client Client, rules []byte, owner common.Address, key *ecdsa
 
 		if r.Body == nil {
 			http.Error(w, "Request body is mandatory for contract creation", http.StatusBadRequest)
+			return
 		}
 		data, err := ioutil.ReadAll(r.Body)
 		if err != nil {

@@ -19,6 +19,7 @@ func txHandler(client Client, rules []byte, owner common.Address, key *ecdsa.Pri
 		err := r.ParseForm()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 
 		to := common.HexToAddress(r.Form.Get("to"))
