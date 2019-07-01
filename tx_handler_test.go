@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
@@ -24,6 +25,7 @@ func Test_txHandler(t *testing.T) {
 	tester := bind.NewKeyedTransactor(testerKey)
 
 	rules := `function validate(tx) return true end`
+	signer := types.HomesteadSigner{}
 
 	t.Run("Can proxy a simple tx", func(t *testing.T) {
 		client := backends.NewSimulatedBackend(core.GenesisAlloc{
@@ -36,7 +38,7 @@ func Test_txHandler(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		h := txHandler(client, rules, owner.From, ownerKey)
+		h := txHandler(client, signer, rules, owner.From, ownerKey)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
@@ -64,7 +66,7 @@ func Test_txHandler(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		h := txHandler(client, rules, owner.From, ownerKey)
+		h := txHandler(client, signer, rules, owner.From, ownerKey)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)

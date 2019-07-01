@@ -12,7 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-func txHandler(client Client, rules string, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
+func txHandler(client Client, signer types.Signer, rules string, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.Background()
 
@@ -76,7 +76,7 @@ func txHandler(client Client, rules string, owner common.Address, key *ecdsa.Pri
 			return
 		}
 
-		signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, key)
+		signedTx, err := types.SignTx(tx, signer, key)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

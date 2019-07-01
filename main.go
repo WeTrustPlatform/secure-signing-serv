@@ -2,11 +2,13 @@ package main
 
 import (
 	"io/ioutil"
+	"math/big"
 	"net/http"
 	"os"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -18,7 +20,7 @@ type Client interface {
 }
 
 func main() {
-	for _, v := range []string{"RPC_ENDPOINT", "PRIV_KEY", "PASSPHRASE", "PORT", "BASIC_AUTH_USER", "BASIC_AUTH_PASS"} {
+	for _, v := range []string{"RPC_ENDPOINT", "PRIV_KEY", "PASSPHRASE", "PORT", "BASIC_AUTH_USER", "BASIC_AUTH_PASS", "CHAIN_ID"} {
 		if os.Getenv(v) == "" {
 			panic("Environment variable not set: " + v)
 		}
@@ -41,14 +43,22 @@ func main() {
 		panic(err)
 	}
 
+	chainID, ok := big.NewInt(0).SetString(os.Getenv("CHAIN_ID"), 10)
+	if !ok {
+		panic("Can't parse CHAIN_ID")
+	}
+	signer := types.NewEIP155Signer(chainID)
+
 	http.HandleFunc("/tx", basicAuth(txHandler(
 		client,
+		signer,
 		string(rules),
 		key.Address,
 		key.PrivateKey)))
 
 	http.HandleFunc("/deploy", basicAuth(deployHandler(
 		client,
+		signer,
 		string(rules),
 		key.Address,
 		key.PrivateKey)))
