@@ -23,7 +23,7 @@ func Test_txHandler(t *testing.T) {
 	testerKey, _ := crypto.GenerateKey()
 	tester := bind.NewKeyedTransactor(testerKey)
 
-	rules := []byte(`function validate(tx) return true end`)
+	rules := `function validate(tx) return true end`
 
 	t.Run("Can proxy a simple tx", func(t *testing.T) {
 		client := backends.NewSimulatedBackend(core.GenesisAlloc{
@@ -31,7 +31,7 @@ func Test_txHandler(t *testing.T) {
 		}, 4000000)
 
 		query := fmt.Sprintf("/tx?to=%s&amount=%d&gasPrice=%d", tester.From.Hex(), 10000000000, 1)
-		req, err := http.NewRequest("POST", query, nil)
+		req, err := http.NewRequest("POST", query, bytes.NewBufferString(""))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -42,6 +42,10 @@ func Test_txHandler(t *testing.T) {
 		h.ServeHTTP(rr, req)
 
 		client.Commit()
+
+		if rr.Code != 200 {
+			t.Errorf("response code = %v, want %v", rr.Code, 200)
+		}
 
 		want := big.NewInt(10000000000)
 		if got, _ := client.BalanceAt(context.Background(), tester.From, nil); !reflect.DeepEqual(got, want) {
@@ -55,7 +59,7 @@ func Test_txHandler(t *testing.T) {
 		}, 4000000)
 
 		query := fmt.Sprintf("/tx?to=%s&amount=%d&gasPrice=%d", tester.From.Hex(), 10000000000, 1)
-		req, err := http.NewRequest("POST", query, bytes.NewBuffer([]byte("abcdef")))
+		req, err := http.NewRequest("POST", query, bytes.NewBufferString("abcdef"))
 		if err != nil {
 			t.Fatal(err)
 		}

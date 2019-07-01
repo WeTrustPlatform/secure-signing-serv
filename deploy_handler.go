@@ -12,7 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-func deployHandler(client Client, rules []byte, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
+func deployHandler(client Client, rules string, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.Background()
 
@@ -58,7 +58,7 @@ func deployHandler(client Client, rules []byte, owner common.Address, key *ecdsa
 
 		tx := types.NewContractCreation(nonce, big.NewInt(0), gas, gp, data)
 
-		valid, err := validate(string(rules), tx)
+		valid, err := validate(rules, tx)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

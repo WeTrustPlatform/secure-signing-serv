@@ -25,7 +25,7 @@ func Test_deployHandler(t *testing.T) {
 	ownerKey, _ := crypto.GenerateKey()
 	owner := bind.NewKeyedTransactor(ownerKey)
 
-	rules := []byte(`function validate(tx) return true end`)
+	rules := "function validate(tx) return true end"
 
 	t.Run("Can proxy a simple contract deployment", func(t *testing.T) {
 		client := backends.NewSimulatedBackend(core.GenesisAlloc{

@@ -43,13 +43,13 @@ func main() {
 
 	http.HandleFunc("/tx", basicAuth(txHandler(
 		client,
-		rules,
+		string(rules),
 		key.Address,
 		key.PrivateKey)))
 
 	http.HandleFunc("/deploy", basicAuth(deployHandler(
 		client,
-		rules,
+		string(rules),
 		key.Address,
 		key.PrivateKey)))
 

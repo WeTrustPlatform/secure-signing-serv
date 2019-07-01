@@ -12,7 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-func txHandler(client Client, rules []byte, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
+func txHandler(client Client, rules string, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.Background()
 
@@ -66,7 +66,7 @@ func txHandler(client Client, rules []byte, owner common.Address, key *ecdsa.Pri
 
 		tx := types.NewTransaction(nonce, to, amount, gas, gp, data)
 
-		valid, err := validate(string(rules), tx)
+		valid, err := validate(rules, tx)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
