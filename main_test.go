@@ -66,7 +66,7 @@ func Test_methodCall(t *testing.T) {
 			return
 		}
 
-		data, err := ABI.Pack("renderMessage")
+		data, err := ABI.Pack("setMessage", "heyho")
 		if err != nil {
 			t.Fatal(err)
 			return
