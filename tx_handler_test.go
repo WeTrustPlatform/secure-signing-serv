@@ -36,6 +36,7 @@ func Test_txHandler(t *testing.T) {
 		req, err := http.NewRequest("POST", query, bytes.NewBufferString(""))
 		if err != nil {
 			t.Fatal(err)
+			return
 		}
 
 		h := txHandler(client, signer, rules, owner.From, ownerKey)
@@ -52,6 +53,7 @@ func Test_txHandler(t *testing.T) {
 		want := big.NewInt(10000000000)
 		if got, _ := client.BalanceAt(context.Background(), tester.From, nil); !reflect.DeepEqual(got, want) {
 			t.Errorf("tester balance = %v, want %v", got, want)
+			return
 		}
 	})
 
@@ -64,6 +66,7 @@ func Test_txHandler(t *testing.T) {
 		req, err := http.NewRequest("POST", query, bytes.NewBufferString("abcdef"))
 		if err != nil {
 			t.Fatal(err)
+			return
 		}
 
 		h := txHandler(client, signer, rules, owner.From, ownerKey)
@@ -76,6 +79,7 @@ func Test_txHandler(t *testing.T) {
 		want := big.NewInt(10000000000)
 		if got, _ := client.BalanceAt(context.Background(), tester.From, nil); !reflect.DeepEqual(got, want) {
 			t.Errorf("tester balance = %v, want %v", got, want)
+			return
 		}
 	})
 }

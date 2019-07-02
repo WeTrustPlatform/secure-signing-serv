@@ -14,7 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -74,7 +73,7 @@ func Test_methodCall(t *testing.T) {
 		}
 
 		callQuery := fmt.Sprintf("/tx?to=%s&amount=%d&gasPrice=%d", deployReceipt.ContractAddress.Hex(), 0, 1)
-		txReq, err := http.NewRequest("POST", callQuery, bytes.NewBufferString(hexutil.Encode(data)))
+		callReq, err := http.NewRequest("POST", callQuery, bytes.NewBufferString(common.Bytes2Hex(data)))
 		if err != nil {
 			t.Fatal(err)
 			return
@@ -83,12 +82,11 @@ func Test_methodCall(t *testing.T) {
 		txh := txHandler(client, signer, rules, owner.From, ownerKey)
 
 		callRR := httptest.NewRecorder()
-		txh.ServeHTTP(callRR, txReq)
+		txh.ServeHTTP(callRR, callReq)
 
 		client.Commit()
 
 		if callRR.Code != 200 {
-
 			t.Errorf("response code = %v, want %v", callRR.Code, 200)
 			return
 		}

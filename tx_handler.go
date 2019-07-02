@@ -9,7 +9,6 @@ import (
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -47,14 +46,9 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 			}
 			defer r.Body.Close()
 		}
+		data = common.Hex2Bytes(string(data))
 
 		nonce, err := client.NonceAt(ctx, owner, nil)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		dd, err := hexutil.Decode(string(data))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -64,14 +58,14 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 			From:  owner,
 			To:    &to,
 			Value: amount,
-			Data:  dd,
+			Data:  data,
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		tx := types.NewTransaction(nonce, to, amount, gas, gp, dd)
+		tx := types.NewTransaction(nonce, to, amount, gas, gp, data)
 
 		valid, err := validate(rules, tx)
 		if err != nil {
