@@ -9,6 +9,7 @@ import (
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
@@ -53,18 +54,24 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 			return
 		}
 
+		dd, err := hexutil.Decode(string(data))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		gas, err := client.EstimateGas(ctx, ethereum.CallMsg{
 			From:  owner,
 			To:    &to,
 			Value: amount,
-			Data:  data,
+			Data:  dd,
 		})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		tx := types.NewTransaction(nonce, to, amount, gas, gp, data)
+		tx := types.NewTransaction(nonce, to, amount, gas, gp, dd)
 
 		valid, err := validate(rules, tx)
 		if err != nil {

@@ -14,6 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -45,55 +46,64 @@ func Test_methodCall(t *testing.T) {
 
 		h := deployHandler(client, signer, rules, owner.From, ownerKey)
 
-		rr := httptest.NewRecorder()
-		h.ServeHTTP(rr, req)
+		deployRR := httptest.NewRecorder()
+		h.ServeHTTP(deployRR, req)
 
 		client.Commit()
 
-		if rr.Code != 200 {
-			t.Errorf("response code = %v, want %v", rr.Code, 200)
+		if deployRR.Code != 200 {
+			t.Errorf("response code = %v, want %v", deployRR.Code, 200)
 		}
 
-		deployReceipt, err := client.TransactionReceipt(ctx, common.HexToHash(rr.Body.String()))
+		deployReceipt, err := client.TransactionReceipt(ctx, common.HexToHash(deployRR.Body.String()))
 		if err != nil {
 			t.Fatal(err)
+			return
 		}
 
 		testabi, err := abi.JSON(strings.NewReader(helloworld.HelloWorldABI))
 		if err != nil {
 			t.Fatal(err)
+			return
 		}
 
-		bytesData, err := testabi.Pack("setMessage", "This is a test")
+		data, err := testabi.Pack("setMessage", "This is a test")
 		if err != nil {
 			t.Fatal(err)
+			return
 		}
 
 		callQuery := fmt.Sprintf("/tx?to=%s&amount=%d&gasPrice=%d", deployReceipt.ContractAddress.Hex(), 0, 1)
-		txReq, err := http.NewRequest("POST", callQuery, bytes.NewBufferString(common.Bytes2Hex(bytesData)))
+		txReq, err := http.NewRequest("POST", callQuery, bytes.NewBufferString(hexutil.Encode(data)))
 		if err != nil {
 			t.Fatal(err)
+			return
 		}
 
 		txh := txHandler(client, signer, rules, owner.From, ownerKey)
 
 		callRR := httptest.NewRecorder()
-		txh.ServeHTTP(rr, txReq)
+		txh.ServeHTTP(callRR, txReq)
 
 		client.Commit()
 
 		if callRR.Code != 200 {
+
 			t.Errorf("response code = %v, want %v", callRR.Code, 200)
+			return
 		}
 
-		callReceipt, err := client.TransactionReceipt(ctx, common.HexToHash(rr.Body.String()))
+		callReceipt, err := client.TransactionReceipt(ctx, common.HexToHash(callRR.Body.String()))
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		b, _ := callReceipt.MarshalJSON()
+		j, _ := callReceipt.MarshalJSON()
 
-		fmt.Println(callReceipt)
-		fmt.Println(string(b))
+		fmt.Println(string(j))
+
+		if len(callReceipt.Logs) != 1 {
+			t.Errorf("response code = %v, want %v", len(callReceipt.Logs), 1)
+		}
 	})
 }
