@@ -7,8 +7,10 @@ import (
 	"math/big"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
@@ -57,18 +59,18 @@ func Test_methodCall(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		// testabi, err := abi.JSON(strings.NewReader(helloworld.HelloWorldABI))
-		// if err != nil {
-		// 	t.Fatal(err)
-		// }
+		testabi, err := abi.JSON(strings.NewReader(helloworld.HelloWorldABI))
+		if err != nil {
+			t.Fatal(err)
+		}
 
-		// bytesData, err := testabi.Pack("setMessage", "This is a test")
-		// if err != nil {
-		// 	t.Fatal(err)
-		// }
+		bytesData, err := testabi.Pack("setMessage", "This is a test")
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		callQuery := fmt.Sprintf("/tx?to=%s&amount=%d&gasPrice=%d", deployReceipt.ContractAddress.Hex(), 0, 1)
-		txReq, err := http.NewRequest("POST", callQuery, bytes.NewBufferString("368b877200000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000008626172626f757365000000000000000000000000000000000000000000000000"))
+		txReq, err := http.NewRequest("POST", callQuery, bytes.NewBufferString(common.Bytes2Hex(bytesData)))
 		if err != nil {
 			t.Fatal(err)
 		}
