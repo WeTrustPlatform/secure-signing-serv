@@ -12,12 +12,15 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
 func Test_txHandler(t *testing.T) {
+	ctx := context.Background()
+
 	ownerKey, _ := crypto.GenerateKey()
 	owner := bind.NewKeyedTransactor(ownerKey)
 
@@ -79,6 +82,17 @@ func Test_txHandler(t *testing.T) {
 		want := big.NewInt(10000000000)
 		if got, _ := client.BalanceAt(context.Background(), tester.From, nil); !reflect.DeepEqual(got, want) {
 			t.Errorf("tester balance = %v, want %v", got, want)
+			return
+		}
+
+		tx, _, err := client.TransactionByHash(ctx, common.HexToHash(rr.Body.String()))
+		if err != nil {
+			t.Fatal(err)
+			return
+		}
+
+		if common.Bytes2Hex(tx.Data()) != "abcdef" {
+			t.Errorf("tx data = %v, want %v", common.Bytes2Hex(tx.Data()), "abcdef")
 			return
 		}
 	})

@@ -16,6 +16,7 @@ import (
 type Client interface {
 	ethereum.ChainStateReader
 	ethereum.TransactionSender
+	ethereum.TransactionReader
 	ethereum.GasEstimator
 }
 

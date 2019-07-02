@@ -60,13 +60,13 @@ func Test_methodCall(t *testing.T) {
 			return
 		}
 
-		testabi, err := abi.JSON(strings.NewReader(helloworld.HelloWorldABI))
+		ABI, err := abi.JSON(strings.NewReader(helloworld.HelloWorldABI))
 		if err != nil {
 			t.Fatal(err)
 			return
 		}
 
-		data, err := testabi.Pack("setMessage", "This is a test")
+		data, err := ABI.Pack("renderMessage")
 		if err != nil {
 			t.Fatal(err)
 			return
@@ -94,6 +94,7 @@ func Test_methodCall(t *testing.T) {
 		callReceipt, err := client.TransactionReceipt(ctx, common.HexToHash(callRR.Body.String()))
 		if err != nil {
 			t.Fatal(err)
+			return
 		}
 
 		j, _ := callReceipt.MarshalJSON()
@@ -102,6 +103,7 @@ func Test_methodCall(t *testing.T) {
 
 		if len(callReceipt.Logs) != 1 {
 			t.Errorf("response code = %v, want %v", len(callReceipt.Logs), 1)
+			return
 		}
 	})
 }
