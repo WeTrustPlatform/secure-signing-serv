@@ -40,6 +40,7 @@ func Test_deployHandler(t *testing.T) {
 		req, err := http.NewRequest("POST", query, bytes.NewBuffer(byteCode))
 		if err != nil {
 			t.Fatal(err)
+			return
 		}
 
 		h := deployHandler(client, signer, rules, owner.From, ownerKey)
@@ -51,20 +52,24 @@ func Test_deployHandler(t *testing.T) {
 
 		if rr.Code != 200 {
 			t.Errorf("response code = %v, want %v", rr.Code, 200)
+			return
 		}
 
 		receipt, err := client.TransactionReceipt(ctx, common.HexToHash(rr.Body.String()))
 		if err != nil {
 			t.Fatal(err)
+			return
 		}
 
 		codeAtAddress, err := client.CodeAt(ctx, receipt.ContractAddress, nil)
 		if err != nil {
 			t.Fatal(err)
+			return
 		}
 
 		if !strings.Contains(string(byteCode), string(codeAtAddress)) {
 			t.Errorf("code at address = %v, want %v", codeAtAddress, byteCode)
+			return
 		}
 	})
 }
