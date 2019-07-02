@@ -27,7 +27,7 @@ func Test_txHandler(t *testing.T) {
 	rules := `function validate(tx) return true end`
 	signer := types.HomesteadSigner{}
 
-	t.Run("Can proxy a simple tx", func(t *testing.T) {
+	t.Run("Can transact with value", func(t *testing.T) {
 		client := backends.NewSimulatedBackend(core.GenesisAlloc{
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 		}, 4000000)
@@ -57,7 +57,7 @@ func Test_txHandler(t *testing.T) {
 		}
 	})
 
-	t.Run("Can proxy a simple tx with data", func(t *testing.T) {
+	t.Run("Can transact with data", func(t *testing.T) {
 		client := backends.NewSimulatedBackend(core.GenesisAlloc{
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 		}, 4000000)
