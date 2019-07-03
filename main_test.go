@@ -59,6 +59,10 @@ func Test_methodCall(t *testing.T) {
 			t.Fatal(err)
 			return
 		}
+		if deployReceipt == nil {
+			t.Errorf("transaction receipt = %v", nil)
+			return
+		}
 
 		ABI, err := abi.JSON(strings.NewReader(helloworld.HelloWorldABI))
 		if err != nil {

@@ -60,6 +60,10 @@ func Test_deployHandler(t *testing.T) {
 			t.Fatal(err)
 			return
 		}
+		if receipt == nil {
+			t.Errorf("transaction receipt = %v", nil)
+			return
+		}
 
 		codeAtAddress, err := client.CodeAt(ctx, receipt.ContractAddress, nil)
 		if err != nil {
