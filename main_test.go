@@ -78,7 +78,7 @@ func Test_methodCall(t *testing.T) {
 			return
 		}
 
-		callQuery := fmt.Sprintf("/tx?to=%s&amount=%d&gasPrice=%d", deployReceipt.ContractAddress.Hex(), 0, 1)
+		callQuery := fmt.Sprintf("/tx?to=%s&value=%d&gasPrice=%d", deployReceipt.ContractAddress.Hex(), 0, 1)
 		callReq, err := http.NewRequest("POST", callQuery, bytes.NewBufferString(common.Bytes2Hex(data)))
 		if err != nil {
 			t.Fatal(err)

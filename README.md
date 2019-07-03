@@ -17,7 +17,7 @@ A micro service to store an ethereum key and perform whitelisted transactions on
 
 Sending a simple transaction:
 
-    curl -X POST "https://your-api-key:your-api-secret@domain-name.com/tx?to=0x5597285BbE81BaF351e2C0884e9a5f4416958862&amount=1000000000000000&gasPrice=20000000000" -H "Content-Type: text/plain" --data hello
+    curl -X POST "https://your-api-key:your-api-secret@domain-name.com/tx?to=0x5597285BbE81BaF351e2C0884e9a5f4416958862&value=1000000000000000&gasPrice=20000000000" -H "Content-Type: text/plain" --data hello
 
 Deploying a smart contract:
 
@@ -25,4 +25,4 @@ Deploying a smart contract:
 
 Calling a smart contract method:
 
-    curl -X POST "http://your-api-key:your-api-secret@localhost:3005/tx?to=0xC7f965a58942dbf4E9fbdf77A511863d7041339d&amount=0&gasPrice=40000000000" -H "Content-Type: text/plain" --data 368b877200000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000008626172626f757365000000000000000000000000000000000000000000000000
+    curl -X POST "http://your-api-key:your-api-secret@localhost:3005/tx?to=0xC7f965a58942dbf4E9fbdf77A511863d7041339d&value=0&gasPrice=40000000000" -H "Content-Type: text/plain" --data 368b877200000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000008626172626f757365000000000000000000000000000000000000000000000000

@@ -35,7 +35,7 @@ func Test_txHandler(t *testing.T) {
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 		}, 4000000)
 
-		query := fmt.Sprintf("/tx?to=%s&amount=%d&gasPrice=%d", tester.From.Hex(), 10000000000, 1)
+		query := fmt.Sprintf("/tx?to=%s&value=%d&gasPrice=%d", tester.From.Hex(), 10000000000, 1)
 		req, err := http.NewRequest("POST", query, bytes.NewBufferString(""))
 		if err != nil {
 			t.Fatal(err)
@@ -65,7 +65,7 @@ func Test_txHandler(t *testing.T) {
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 		}, 4000000)
 
-		query := fmt.Sprintf("/tx?to=%s&amount=%d&gasPrice=%d", tester.From.Hex(), 10000000000, 1)
+		query := fmt.Sprintf("/tx?to=%s&value=%d&gasPrice=%d", tester.From.Hex(), 10000000000, 1)
 		req, err := http.NewRequest("POST", query, bytes.NewBufferString("abcdef"))
 		if err != nil {
 			t.Fatal(err)
