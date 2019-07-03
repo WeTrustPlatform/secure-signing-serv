@@ -10,7 +10,7 @@ import (
 )
 
 func Test_validate(t *testing.T) {
-	t.Run("can validate a transaction", func(t *testing.T) {
+	t.Run("Can validate a transaction", func(t *testing.T) {
 		tx := types.NewTransaction(
 			1,
 			common.HexToAddress("0x5597285BbE81BaF351e2C0884e9a5f4416958862"),
@@ -32,7 +32,7 @@ end
 		}
 	})
 
-	t.Run("can invalidate a transaction", func(t *testing.T) {
+	t.Run("Can invalidate a transaction", func(t *testing.T) {
 		tx := types.NewTransaction(
 			1,
 			common.HexToAddress("0x5597285BbE81BaF351e2C0884e9a5f4416958861"),
@@ -54,7 +54,7 @@ end
 		}
 	})
 
-	t.Run("can filter on data field", func(t *testing.T) {
+	t.Run("Can filter on data field", func(t *testing.T) {
 		tx := types.NewTransaction(
 			1,
 			common.HexToAddress("0x5597285BbE81BaF351e2C0884e9a5f4416958861"),

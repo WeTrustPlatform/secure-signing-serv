@@ -46,6 +46,7 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 			}
 			defer r.Body.Close()
 		}
+		data = common.Hex2Bytes(string(data))
 
 		nonce, err := client.NonceAt(ctx, owner, nil)
 		if err != nil {
