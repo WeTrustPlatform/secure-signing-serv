@@ -35,12 +35,13 @@ func Test_methodCall(t *testing.T) {
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 		}, 4000000)
 
-		byteCode := common.Hex2Bytes(helloworld.HelloWorldBin[2:])
+		byteCode := helloworld.HelloWorldBin[2:]
 
 		deployQuery := fmt.Sprintf("/deploy?gasPrice=%d", 1)
-		req, err := http.NewRequest("POST", deployQuery, bytes.NewBuffer(byteCode))
+		req, err := http.NewRequest("POST", deployQuery, bytes.NewBufferString(byteCode))
 		if err != nil {
 			t.Fatal(err)
+			return
 		}
 
 		h := deployHandler(client, signer, rules, owner.From, ownerKey)
@@ -52,6 +53,7 @@ func Test_methodCall(t *testing.T) {
 
 		if deployRR.Code != 200 {
 			t.Errorf("response code = %v, want %v", deployRR.Code, 200)
+			return
 		}
 
 		deployReceipt, err := client.TransactionReceipt(ctx, common.HexToHash(deployRR.Body.String()))
@@ -95,19 +97,19 @@ func Test_methodCall(t *testing.T) {
 			return
 		}
 
-		// callReceipt, err := client.TransactionReceipt(ctx, common.HexToHash(callRR.Body.String()))
-		// if err != nil {
-		// 	t.Fatal(err)
-		// 	return
-		// }
+		callReceipt, err := client.TransactionReceipt(ctx, common.HexToHash(callRR.Body.String()))
+		if err != nil {
+			t.Fatal(err)
+			return
+		}
+		if callReceipt == nil {
+			t.Errorf("transaction receipt = %v", nil)
+			return
+		}
 
-		// j, _ := callReceipt.MarshalJSON()
-
-		// fmt.Println(string(j))
-
-		// if len(callReceipt.Logs) != 1 {
-		// 	t.Errorf("response code = %v, want %v", len(callReceipt.Logs), 1)
-		// 	return
-		// }
+		if len(callReceipt.Logs) != 1 {
+			t.Errorf("response code = %v, want %v", len(callReceipt.Logs), 1)
+			return
+		}
 	})
 }
