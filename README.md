@@ -1,6 +1,10 @@
 # Secure Signing Service (3S)
 
-A micro service to store an ethereum key and perform whitelisted transactions on your behalf
+A micro service to store an ethereum key and perform whitelisted transactions on your behalf. S3 can transfer ether, deploy smart contracts, and call smart contract methods.
+
+It is useful when you want your users to be able to write in the ethereum blockchain without having to pay the gas fees. You pay the fee for them.
+
+The service is authenticated, and scriptable using Lua to only allow certain kind of transactions.
 
 ## Building
 
