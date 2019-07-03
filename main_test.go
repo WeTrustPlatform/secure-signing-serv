@@ -91,19 +91,19 @@ func Test_methodCall(t *testing.T) {
 			return
 		}
 
-		callReceipt, err := client.TransactionReceipt(ctx, common.HexToHash(callRR.Body.String()))
-		if err != nil {
-			t.Fatal(err)
-			return
-		}
+		// callReceipt, err := client.TransactionReceipt(ctx, common.HexToHash(callRR.Body.String()))
+		// if err != nil {
+		// 	t.Fatal(err)
+		// 	return
+		// }
 
-		j, _ := callReceipt.MarshalJSON()
+		// j, _ := callReceipt.MarshalJSON()
 
-		fmt.Println(string(j))
+		// fmt.Println(string(j))
 
-		if len(callReceipt.Logs) != 1 {
-			t.Errorf("response code = %v, want %v", len(callReceipt.Logs), 1)
-			return
-		}
+		// if len(callReceipt.Logs) != 1 {
+		// 	t.Errorf("response code = %v, want %v", len(callReceipt.Logs), 1)
+		// 	return
+		// }
 	})
 }
