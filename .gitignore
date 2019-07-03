@@ -2,3 +2,5 @@ secure-signing-serv
 debug
 .vscode
 .env
+cmd/s3-tx/s3-tx
+cmd/s3-deploy/s3-deploy

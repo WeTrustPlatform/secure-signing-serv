@@ -11,8 +11,9 @@ import (
 )
 
 func main() {
-	var endpoint, value, gasPrice, data string
+	var endpoint, to, value, gasPrice, data string
 	flag.StringVar(&endpoint, "E", "", "The S3 API endpoint")
+	flag.StringVar(&to, "to", "", "The receiver address")
 	flag.StringVar(&value, "value", "0", "The amount to be transfered")
 	flag.StringVar(&gasPrice, "gasprice", "0", "The price of the gas")
 	flag.StringVar(&data, "data", "", "Data field of the transaction")
@@ -31,7 +32,7 @@ func main() {
 
 	s3 := client.NewClient(endpoint)
 	resp, err := s3.Transact(
-		common.HexToAddress("0xC7f965a58942dbf4E9fbdf77A511863d7041339d"),
+		common.HexToAddress(to),
 		v,
 		gp,
 		data,
