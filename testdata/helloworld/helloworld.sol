@@ -13,8 +13,4 @@ contract helloWorld {
 		message = m;
 		emit Updated(msg.sender, m);
 	}
-
-	function renderMessage() public view returns (string memory) {
-		return message;
-	}
 }
