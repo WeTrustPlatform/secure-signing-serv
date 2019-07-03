@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"math/big"
 
 	"github.com/WeTrustPlatform/secure-signing-serv/client"
@@ -28,8 +29,8 @@ func main() {
 		return
 	}
 
-	s3 := client.NewClient(endpoint, nil)
-	res, err := s3.Transact(
+	s3 := client.NewClient(endpoint)
+	resp, err := s3.Transact(
 		common.HexToAddress("0xC7f965a58942dbf4E9fbdf77A511863d7041339d"),
 		v,
 		gp,
@@ -40,5 +41,11 @@ func main() {
 		return
 	}
 
-	fmt.Println(res.StatusCode)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(resp.StatusCode, string(body))
 }
