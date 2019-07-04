@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -18,6 +21,8 @@ type Client interface {
 	ethereum.TransactionSender
 	ethereum.GasEstimator
 }
+
+var calls chan ethereum.CallMsg
 
 func main() {
 	for _, v := range []string{"RPC_ENDPOINT", "PRIV_KEY", "PASSPHRASE", "PORT", "BASIC_AUTH_USER", "BASIC_AUTH_PASS", "CHAIN_ID"} {
@@ -49,6 +54,8 @@ func main() {
 	}
 	signer := types.NewEIP155Signer(chainID)
 
+	calls = make(chan ethereum.CallMsg, 16)
+
 	http.HandleFunc("/tx", basicAuth(txHandler(
 		client,
 		signer,
@@ -63,5 +70,59 @@ func main() {
 		key.Address,
 		key.PrivateKey)))
 
+	go func() {
+		for {
+			call := <-calls
+			ctx := context.Background()
+
+			nonce, err := client.NonceAt(ctx, call.From, nil)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			gas, err := client.EstimateGas(ctx, call)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			tx := types.NewTransaction(nonce, *call.To, call.Value, gas, call.GasPrice, call.Data)
+
+			valid, err := validate(string(rules), tx)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			if !valid {
+				fmt.Println("Invalid transaction")
+				return
+			}
+
+			signedTx, err := types.SignTx(tx, signer, key.PrivateKey)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			err = client.SendTransaction(ctx, signedTx)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			for {
+				time.Sleep(1 * time.Second)
+				receipt, _ := client.TransactionReceipt(ctx, signedTx.Hash())
+				if receipt != nil && receipt.Status == 1 {
+					break
+				}
+			}
+
+			fmt.Println(signedTx.Hash().String())
+		}
+	}()
+
+	fmt.Println("Listening...")
 	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }

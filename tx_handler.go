@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"crypto/ecdsa"
 	"io/ioutil"
 	"math/big"
@@ -14,8 +13,6 @@ import (
 
 func txHandler(client Client, signer types.Signer, rules string, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.Background()
-
 		err := r.ParseForm()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -48,47 +45,12 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 		}
 		data = common.Hex2Bytes(string(data))
 
-		nonce, err := client.NonceAt(ctx, owner, nil)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+		calls <- ethereum.CallMsg{
+			From:     owner,
+			To:       &to,
+			Value:    value,
+			GasPrice: gp,
+			Data:     data,
 		}
-
-		gas, err := client.EstimateGas(ctx, ethereum.CallMsg{
-			From:  owner,
-			To:    &to,
-			Value: value,
-			Data:  data,
-		})
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		tx := types.NewTransaction(nonce, to, value, gas, gp, data)
-
-		valid, err := validate(rules, tx)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if !valid {
-			http.Error(w, "Invalid transaction", http.StatusUnauthorized)
-			return
-		}
-
-		signedTx, err := types.SignTx(tx, signer, key)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		err = client.SendTransaction(ctx, signedTx)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		w.Write([]byte(signedTx.Hash().String()))
 	}
 }
