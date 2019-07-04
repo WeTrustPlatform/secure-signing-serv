@@ -1,1 +1,1 @@
-web: secure-siging-serv
+web: bin/secure-siging-serv
