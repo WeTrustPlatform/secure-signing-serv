@@ -24,10 +24,10 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 
 		to := common.HexToAddress(r.Form.Get("to"))
 
-		amount := new(big.Int)
-		amount, ok := amount.SetString(r.Form.Get("amount"), 10)
+		value := new(big.Int)
+		value, ok := value.SetString(r.Form.Get("value"), 10)
 		if !ok {
-			http.Error(w, "Couldn't convert amount to big.Int", http.StatusBadRequest)
+			http.Error(w, "Couldn't convert value to big.Int", http.StatusBadRequest)
 			return
 		}
 
@@ -57,7 +57,7 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 		gas, err := client.EstimateGas(ctx, ethereum.CallMsg{
 			From:  owner,
 			To:    &to,
-			Value: amount,
+			Value: value,
 			Data:  data,
 		})
 		if err != nil {
@@ -65,7 +65,7 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 			return
 		}
 
-		tx := types.NewTransaction(nonce, to, amount, gas, gp, data)
+		tx := types.NewTransaction(nonce, to, value, gas, gp, data)
 
 		valid, err := validate(rules, tx)
 		if err != nil {
