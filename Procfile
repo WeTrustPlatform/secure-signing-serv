@@ -1,1 +1,1 @@
-web: bin/secure-siging-serv
+web: bin/secure-signing-serv
