@@ -21,7 +21,7 @@ The service is authenticated, and scriptable using Lua to only allow certain kin
 
 Sending a simple transaction:
 
-    curl -X POST "https://your-api-key:your-api-secret@domain-name.com/tx?to=0x5597285BbE81BaF351e2C0884e9a5f4416958862&value=1000000000000000&gasPrice=20000000000" -H "Content-Type: text/plain" --data hello
+    curl -X POST "https://your-api-key:your-api-secret@domain-name.com/tx?to=0x5597285BbE81BaF351e2C0884e9a5f4416958862&value=1000000000000000&gasPrice=20000000000" -H "Content-Type: text/plain" --data abcd
 
 Deploying a smart contract:
 
