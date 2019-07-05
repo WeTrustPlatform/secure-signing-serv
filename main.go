@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/big"
@@ -24,43 +25,37 @@ type Client interface {
 
 var calls chan ethereum.CallMsg
 
-func process(call ethereum.CallMsg, client *ethclient.Client, rules string, signer types.Signer, key *keystore.Key) {
+func process(call ethereum.CallMsg, client *ethclient.Client, rules string, signer types.Signer, key *keystore.Key) error {
 	ctx := context.Background()
 
 	nonce, err := client.NonceAt(ctx, call.From, nil)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 
 	gas, err := client.EstimateGas(ctx, call)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 
 	tx := types.NewTransaction(nonce, *call.To, call.Value, gas, call.GasPrice, call.Data)
 
 	valid, err := validate(rules, tx)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 	if !valid {
-		fmt.Println("Invalid transaction")
-		return
+		return errors.New("Invalid transaction")
 	}
 
 	signedTx, err := types.SignTx(tx, signer, key.PrivateKey)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 
 	err = client.SendTransaction(ctx, signedTx)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 
 	for {
@@ -72,6 +67,7 @@ func process(call ethereum.CallMsg, client *ethclient.Client, rules string, sign
 	}
 
 	fmt.Println(signedTx.Hash().String())
+	return nil
 }
 
 func main() {
@@ -122,7 +118,10 @@ func main() {
 
 	go func() {
 		for {
-			process(<-calls, client, string(rules), signer, key)
+			err := process(<-calls, client, string(rules), signer, key)
+			if err != nil {
+				fmt.Print(err)
+			}
 		}
 	}()
 
