@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	"sync/atomic"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -40,12 +41,6 @@ func deployHandler(client Client, signer types.Signer, rules string, owner commo
 		defer r.Body.Close()
 		data = common.Hex2Bytes(string(data))
 
-		nonce, err := client.NonceAt(ctx, owner, nil)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
 		gas, err := client.EstimateGas(ctx, ethereum.CallMsg{
 			From: owner,
 			To:   nil,
@@ -79,6 +74,8 @@ func deployHandler(client Client, signer types.Signer, rules string, owner commo
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		atomic.AddUint64(&nonce, 1)
 
 		w.Write([]byte(signedTx.Hash().String()))
 	}
