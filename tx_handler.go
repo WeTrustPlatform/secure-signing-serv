@@ -60,7 +60,8 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 			return
 		}
 
-		tx := types.NewTransaction(nonce, to, value, gas, gp, data)
+		n := atomic.LoadUint64(&nonce)
+		tx := types.NewTransaction(n, to, value, gas, gp, data)
 
 		valid, err := validate(rules, tx)
 		if err != nil {

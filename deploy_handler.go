@@ -51,7 +51,8 @@ func deployHandler(client Client, signer types.Signer, rules string, owner commo
 			return
 		}
 
-		tx := types.NewContractCreation(nonce, big.NewInt(0), gas, gp, data)
+		n := atomic.LoadUint64(&nonce)
+		tx := types.NewContractCreation(n, big.NewInt(0), gas, gp, data)
 
 		valid, err := validate(rules, tx)
 		if err != nil {
