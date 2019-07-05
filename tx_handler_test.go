@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
@@ -35,6 +36,8 @@ func Test_txHandler(t *testing.T) {
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 		}, 4000000)
 
+		calls = make(chan ethereum.CallMsg, 8)
+
 		query := fmt.Sprintf("/tx?to=%s&value=%d&gasPrice=%d", tester.From.Hex(), 10000000000, 1)
 		req, err := http.NewRequest("POST", query, bytes.NewBufferString(""))
 		if err != nil {
@@ -47,6 +50,7 @@ func Test_txHandler(t *testing.T) {
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 
+		process(<-calls, client, rules, signer, ownerKey)
 		client.Commit()
 
 		if rr.Code != 200 {
@@ -65,6 +69,8 @@ func Test_txHandler(t *testing.T) {
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 		}, 4000000)
 
+		calls = make(chan ethereum.CallMsg, 8)
+
 		query := fmt.Sprintf("/tx?to=%s&value=%d&gasPrice=%d", tester.From.Hex(), 10000000000, 1)
 		req, err := http.NewRequest("POST", query, bytes.NewBufferString("abcdef"))
 		if err != nil {
@@ -77,6 +83,7 @@ func Test_txHandler(t *testing.T) {
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 
+		process(<-calls, client, rules, signer, ownerKey)
 		client.Commit()
 
 		want := big.NewInt(10000000000)

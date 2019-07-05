@@ -40,17 +40,19 @@ func deployHandler(client Client, signer types.Signer, rules string, owner commo
 		defer r.Body.Close()
 		data = common.Hex2Bytes(string(data))
 
+		call := ethereum.CallMsg{
+			From:     owner,
+			GasPrice: gp,
+			Data:     data,
+		}
+
 		nonce, err := client.NonceAt(ctx, owner, nil)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		gas, err := client.EstimateGas(ctx, ethereum.CallMsg{
-			From: owner,
-			To:   nil,
-			Data: data,
-		})
+		gas, err := client.EstimateGas(ctx, call)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -58,7 +60,7 @@ func deployHandler(client Client, signer types.Signer, rules string, owner commo
 
 		tx := types.NewContractCreation(nonce, big.NewInt(0), gas, gp, data)
 
-		valid, err := validate(rules, tx)
+		valid, err := validate(rules, call)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

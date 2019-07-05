@@ -2,13 +2,12 @@ package main
 
 import (
 	"context"
-	"errors"
+	"crypto/ecdsa"
 	"fmt"
 	"io/ioutil"
 	"math/big"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -20,12 +19,18 @@ import (
 type Client interface {
 	ethereum.ChainStateReader
 	ethereum.TransactionSender
+	ethereum.TransactionReader
 	ethereum.GasEstimator
 }
 
 var calls chan ethereum.CallMsg
 
-func process(call ethereum.CallMsg, client *ethclient.Client, rules string, signer types.Signer, key *keystore.Key) error {
+func init() {
+	calls = make(chan ethereum.CallMsg, 2048)
+}
+
+func process(call ethereum.CallMsg, client Client, rules string, signer types.Signer, key *ecdsa.PrivateKey) error {
+	fmt.Println(call)
 	ctx := context.Background()
 
 	nonce, err := client.NonceAt(ctx, call.From, nil)
@@ -40,15 +45,7 @@ func process(call ethereum.CallMsg, client *ethclient.Client, rules string, sign
 
 	tx := types.NewTransaction(nonce, *call.To, call.Value, gas, call.GasPrice, call.Data)
 
-	valid, err := validate(rules, tx)
-	if err != nil {
-		return err
-	}
-	if !valid {
-		return errors.New("Invalid transaction")
-	}
-
-	signedTx, err := types.SignTx(tx, signer, key.PrivateKey)
+	signedTx, err := types.SignTx(tx, signer, key)
 	if err != nil {
 		return err
 	}
@@ -58,13 +55,13 @@ func process(call ethereum.CallMsg, client *ethclient.Client, rules string, sign
 		return err
 	}
 
-	for {
-		time.Sleep(1 * time.Second)
-		receipt, _ := client.TransactionReceipt(ctx, signedTx.Hash())
-		if receipt != nil {
-			break
-		}
-	}
+	// for {
+	// 	time.Sleep(1 * time.Second)
+	// 	receipt, _ := client.TransactionReceipt(ctx, signedTx.Hash())
+	// 	if receipt != nil {
+	// 		break
+	// 	}
+	// }
 
 	fmt.Println(signedTx.Hash().String())
 	return nil
@@ -100,8 +97,6 @@ func main() {
 	}
 	signer := types.NewEIP155Signer(chainID)
 
-	calls = make(chan ethereum.CallMsg, 16)
-
 	http.HandleFunc("/tx", basicAuth(txHandler(
 		client,
 		signer,
@@ -118,7 +113,7 @@ func main() {
 
 	go func() {
 		for {
-			err := process(<-calls, client, string(rules), signer, key)
+			err := process(<-calls, client, string(rules), signer, key.PrivateKey)
 			if err != nil {
 				fmt.Print(err)
 			}

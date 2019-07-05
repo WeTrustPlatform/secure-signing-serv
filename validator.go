@@ -1,25 +1,25 @@
 package main
 
 import (
-	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum"
 	lua "github.com/yuin/gopher-lua"
 )
 
-func txToLTable(L *lua.LState, tx *types.Transaction) *lua.LTable {
+func callToLTable(L *lua.LState, call ethereum.CallMsg) *lua.LTable {
 	t := L.NewTable()
-	if tx.To() != nil {
-		L.SetField(t, "to", lua.LString(tx.To().String()))
+	if call.To != nil {
+		L.SetField(t, "to", lua.LString(call.To.String()))
 	}
-	if tx.Value() != nil {
-		L.SetField(t, "value", lua.LString(tx.Value().String()))
+	if call.Value != nil {
+		L.SetField(t, "value", lua.LString(call.Value.String()))
 	}
-	if tx.Data() != nil {
-		L.SetField(t, "data", lua.LString(string(tx.Data()[:])))
+	if call.Data != nil {
+		L.SetField(t, "data", lua.LString(string(call.Data[:])))
 	}
 	return t
 }
 
-func validate(rules string, tx *types.Transaction) (bool, error) {
+func validate(rules string, call ethereum.CallMsg) (bool, error) {
 	L := lua.NewState()
 	defer L.Close()
 
@@ -34,7 +34,7 @@ func validate(rules string, tx *types.Transaction) (bool, error) {
 			NRet:    1,
 			Protect: true,
 		},
-		txToLTable(L, tx),
+		callToLTable(L, call),
 	)
 	if err != nil {
 		return false, err

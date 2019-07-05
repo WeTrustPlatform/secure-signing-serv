@@ -45,12 +45,24 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 		}
 		data = common.Hex2Bytes(string(data))
 
-		calls <- ethereum.CallMsg{
+		call := ethereum.CallMsg{
 			From:     owner,
 			To:       &to,
 			Value:    value,
 			GasPrice: gp,
 			Data:     data,
 		}
+
+		valid, err := validate(rules, call)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if !valid {
+			http.Error(w, "Invalid transaction", http.StatusInternalServerError)
+			return
+		}
+
+		calls <- call
 	}
 }
