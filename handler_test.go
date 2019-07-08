@@ -47,10 +47,8 @@ func Test_handler(t *testing.T) {
 		}
 
 		h := handler(client, signer, rules, owner.From, ownerKey)
-
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
-
 		client.Commit()
 
 		if rr.Code != 200 {
@@ -78,10 +76,8 @@ func Test_handler(t *testing.T) {
 		}
 
 		h := handler(client, signer, rules, owner.From, ownerKey)
-
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
-
 		client.Commit()
 
 		want := big.NewInt(10000000000)
@@ -118,10 +114,8 @@ func Test_handler(t *testing.T) {
 		}
 
 		h := handler(client, signer, rules, owner.From, ownerKey)
-
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
-
 		client.Commit()
 
 		if rr.Code != 200 {
@@ -170,10 +164,8 @@ func Test_handler(t *testing.T) {
 		}
 
 		h := handler(client, signer, rules, owner.From, ownerKey)
-
 		deployRR := httptest.NewRecorder()
 		h.ServeHTTP(deployRR, req)
-
 		client.Commit()
 
 		if deployRR.Code != 200 {
@@ -211,10 +203,8 @@ func Test_handler(t *testing.T) {
 		}
 
 		txh := handler(client, signer, rules, owner.From, ownerKey)
-
 		callRR := httptest.NewRecorder()
 		txh.ServeHTTP(callRR, callReq)
-
 		client.Commit()
 
 		if callRR.Code != 200 {

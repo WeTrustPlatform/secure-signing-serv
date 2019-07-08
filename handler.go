@@ -15,6 +15,7 @@ import (
 
 func handler(client Client, signer types.Signer, rules string, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var ok bool
 		ctx := context.Background()
 
 		err := r.ParseForm()
@@ -24,21 +25,18 @@ func handler(client Client, signer types.Signer, rules string, owner common.Addr
 		}
 
 		var to *common.Address
-		toString := r.Form.Get("to")
-		if toString != "" {
-			address := common.HexToAddress(toString)
+		if r.Form.Get("to") != "" {
+			address := common.HexToAddress(r.Form.Get("to"))
 			to = &address
 		}
 
-		valueString := r.Form.Get("value")
-		if valueString == "" {
-			valueString = "0"
-		}
 		value := new(big.Int)
-		value, ok := value.SetString(valueString, 10)
-		if !ok {
-			http.Error(w, "Couldn't convert value to big.Int", http.StatusBadRequest)
-			return
+		if r.Form.Get("value") != "" {
+			value, ok = value.SetString(r.Form.Get("value"), 10)
+			if !ok {
+				http.Error(w, "Couldn't convert value to big.Int", http.StatusBadRequest)
+				return
+			}
 		}
 
 		gp, ok := big.NewInt(0).SetString(r.Form.Get("gasPrice"), 10)
@@ -71,7 +69,7 @@ func handler(client Client, signer types.Signer, rules string, owner common.Addr
 
 		n := atomic.LoadUint64(&nonce)
 		tx := &types.Transaction{}
-		if toString != "" {
+		if to != nil {
 			tx = types.NewTransaction(n, *to, value, gas, gp, data)
 		} else {
 			tx = types.NewContractCreation(n, big.NewInt(0), gas, gp, data)

@@ -25,7 +25,7 @@ Sending a simple transaction:
 
 Deploying a smart contract:
 
-    curl -X POST "https://your-api-key:your-api-secret@domain-name.com/deploy?gasPrice=20000000000" -H "Content-Type: text/plain" --data 6080...0029
+    curl -X POST "https://your-api-key:your-api-secret@domain-name.com/tx?gasPrice=20000000000" -H "Content-Type: text/plain" --data 6080...0029
 
 Calling a smart contract method:
 
