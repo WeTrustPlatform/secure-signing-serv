@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/ecdsa"
+	"fmt"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -23,10 +24,19 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 			return
 		}
 
-		to := common.HexToAddress(r.Form.Get("to"))
+		var to *common.Address
+		toString := r.Form.Get("to")
+		if toString != "" {
+			address := common.HexToAddress(toString)
+			to = &address
+		}
 
+		valueString := r.Form.Get("value")
+		if valueString == "" {
+			valueString = "0"
+		}
 		value := new(big.Int)
-		value, ok := value.SetString(r.Form.Get("value"), 10)
+		value, ok := value.SetString(valueString, 10)
 		if !ok {
 			http.Error(w, "Couldn't convert value to big.Int", http.StatusBadRequest)
 			return
@@ -51,7 +61,7 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 
 		gas, err := client.EstimateGas(ctx, ethereum.CallMsg{
 			From:  owner,
-			To:    &to,
+			To:    to,
 			Value: value,
 			Data:  data,
 		})
@@ -61,7 +71,14 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 		}
 
 		n := atomic.LoadUint64(&nonce)
-		tx := types.NewTransaction(n, to, value, gas, gp, data)
+		tx := &types.Transaction{}
+		if toString != "" {
+			tx = types.NewTransaction(n, *to, value, gas, gp, data)
+		} else {
+			tx = types.NewContractCreation(n, big.NewInt(0), gas, gp, data)
+		}
+
+		fmt.Println(tx)
 
 		valid, err := validate(rules, tx)
 		if err != nil {

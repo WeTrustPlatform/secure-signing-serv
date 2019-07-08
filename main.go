@@ -64,12 +64,5 @@ func main() {
 		key.Address,
 		key.PrivateKey)))
 
-	http.HandleFunc("/deploy", basicAuth(deployHandler(
-		client,
-		signer,
-		string(rules),
-		key.Address,
-		key.PrivateKey)))
-
 	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }

@@ -36,14 +36,14 @@ func Test_deployHandler(t *testing.T) {
 
 		byteCode := helloworld.HelloWorldBin[2:]
 
-		query := fmt.Sprintf("/deploy?gasPrice=%d", 1)
+		query := fmt.Sprintf("/tx?gasPrice=%d", 1)
 		req, err := http.NewRequest("POST", query, bytes.NewBufferString(byteCode))
 		if err != nil {
 			t.Fatal(err)
 			return
 		}
 
-		h := deployHandler(client, signer, rules, owner.From, ownerKey)
+		h := txHandler(client, signer, rules, owner.From, ownerKey)
 
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
