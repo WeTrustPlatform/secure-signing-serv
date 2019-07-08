@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"crypto/ecdsa"
-	"io/ioutil"
+	"encoding/json"
 	"math/big"
 	"net/http"
 	"sync/atomic"
@@ -13,48 +13,48 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
+// Payload to unmarshal requests JSON encoded body
+type Payload struct {
+	To       string `json:"to"`       // destination address, optional
+	Value    string `json:"value"`    // amount to be transfered, optional
+	GasPrice string `json:"gasPrice"` // price of the gas unit, mandatory
+	Data     string `json:"data"`     // hex encoded data, optional
+}
+
 func handler(client Client, signer types.Signer, rules string, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var ok bool
 		ctx := context.Background()
 
-		err := r.ParseForm()
+		decoder := json.NewDecoder(r.Body)
+		var p Payload
+		err := decoder.Decode(&p)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
+			http.Error(w, err.Error(), 403)
 		}
 
 		var to *common.Address
-		if r.Form.Get("to") != "" {
-			address := common.HexToAddress(r.Form.Get("to"))
+		if p.To != "" {
+			address := common.HexToAddress(p.To)
 			to = &address
 		}
 
 		value := new(big.Int)
-		if r.Form.Get("value") != "" {
-			value, ok = value.SetString(r.Form.Get("value"), 10)
+		if p.Value != "" {
+			value, ok = value.SetString(p.Value, 10)
 			if !ok {
-				http.Error(w, "Couldn't convert value to big.Int", http.StatusBadRequest)
+				http.Error(w, "couldn't convert value to big.Int", http.StatusBadRequest)
 				return
 			}
 		}
 
-		gp, ok := big.NewInt(0).SetString(r.Form.Get("gasPrice"), 10)
+		gp, ok := big.NewInt(0).SetString(p.GasPrice, 10)
 		if !ok {
-			http.Error(w, "Couldn't convert gasPrice to big.Int", http.StatusBadRequest)
+			http.Error(w, "couldn't convert gasPrice to big.Int", http.StatusBadRequest)
 			return
 		}
 
-		var data []byte
-		if r.Body != nil {
-			data, err = ioutil.ReadAll(r.Body)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			defer r.Body.Close()
-		}
-		data = common.Hex2Bytes(string(data))
+		data := common.Hex2Bytes(p.Data)
 
 		gas, err := client.EstimateGas(ctx, ethereum.CallMsg{
 			From:  owner,
@@ -81,7 +81,7 @@ func handler(client Client, signer types.Signer, rules string, owner common.Addr
 			return
 		}
 		if !valid {
-			http.Error(w, "Invalid transaction", http.StatusUnauthorized)
+			http.Error(w, "invalid transaction", http.StatusUnauthorized)
 			return
 		}
 

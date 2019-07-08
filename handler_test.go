@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
-	"fmt"
+	"encoding/json"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
@@ -39,8 +39,10 @@ func Test_handler(t *testing.T) {
 		}, 4000000)
 		nonce = 0
 
-		query := fmt.Sprintf("/tx?to=%s&value=%d&gasPrice=%d", tester.From.Hex(), 10000000000, 1)
-		req, err := http.NewRequest("POST", query, bytes.NewBufferString(""))
+		p := Payload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1"}
+		b := new(bytes.Buffer)
+		json.NewEncoder(b).Encode(p)
+		req, err := http.NewRequest("POST", "/tx", b)
 		if err != nil {
 			t.Fatal(err)
 			return
@@ -68,8 +70,10 @@ func Test_handler(t *testing.T) {
 		}, 4000000)
 		nonce = 0
 
-		query := fmt.Sprintf("/tx?to=%s&value=%d&gasPrice=%d", tester.From.Hex(), 10000000000, 1)
-		req, err := http.NewRequest("POST", query, bytes.NewBufferString("abcdef"))
+		p := Payload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1", Data: "abcdef"}
+		b := new(bytes.Buffer)
+		json.NewEncoder(b).Encode(p)
+		req, err := http.NewRequest("POST", "/tx", b)
 		if err != nil {
 			t.Fatal(err)
 			return
@@ -106,8 +110,10 @@ func Test_handler(t *testing.T) {
 
 		byteCode := helloworld.HelloWorldBin[2:]
 
-		query := fmt.Sprintf("/tx?gasPrice=%d", 1)
-		req, err := http.NewRequest("POST", query, bytes.NewBufferString(byteCode))
+		p := Payload{GasPrice: "1", Data: byteCode}
+		b := new(bytes.Buffer)
+		json.NewEncoder(b).Encode(p)
+		req, err := http.NewRequest("POST", "/tx", b)
 		if err != nil {
 			t.Fatal(err)
 			return
@@ -156,8 +162,10 @@ func Test_handler(t *testing.T) {
 
 		byteCode := helloworld.HelloWorldBin[2:]
 
-		deployQuery := fmt.Sprintf("/tx?gasPrice=%d", 1)
-		req, err := http.NewRequest("POST", deployQuery, bytes.NewBufferString(byteCode))
+		p := Payload{GasPrice: "1", Data: byteCode}
+		b := new(bytes.Buffer)
+		json.NewEncoder(b).Encode(p)
+		req, err := http.NewRequest("POST", "/tx", b)
 		if err != nil {
 			t.Fatal(err)
 			return
@@ -195,8 +203,10 @@ func Test_handler(t *testing.T) {
 			return
 		}
 
-		callQuery := fmt.Sprintf("/tx?to=%s&value=%d&gasPrice=%d", deployReceipt.ContractAddress.Hex(), 0, 1)
-		callReq, err := http.NewRequest("POST", callQuery, bytes.NewBufferString(common.Bytes2Hex(data)))
+		p2 := Payload{To: deployReceipt.ContractAddress.Hex(), GasPrice: "1", Data: common.Bytes2Hex(data)}
+		b2 := new(bytes.Buffer)
+		json.NewEncoder(b2).Encode(p2)
+		callReq, err := http.NewRequest("POST", "/tx", b2)
 		if err != nil {
 			t.Fatal(err)
 			return
