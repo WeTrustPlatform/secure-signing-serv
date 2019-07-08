@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -19,6 +20,8 @@ type Client interface {
 	ethereum.GasEstimator
 }
 
+var nonce uint64
+
 func main() {
 	for _, v := range []string{"RPC_ENDPOINT", "PRIV_KEY", "PASSPHRASE", "PORT", "BASIC_AUTH_USER", "BASIC_AUTH_PASS", "CHAIN_ID"} {
 		if os.Getenv(v) == "" {
@@ -34,6 +37,11 @@ func main() {
 	keyJSON := os.Getenv("PRIV_KEY")
 	pass := os.Getenv("PASSPHRASE")
 	key, err := keystore.DecryptKey([]byte(keyJSON), pass)
+	if err != nil {
+		panic(err)
+	}
+
+	nonce, err = client.NonceAt(context.Background(), key.Address, nil)
 	if err != nil {
 		panic(err)
 	}

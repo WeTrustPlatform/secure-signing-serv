@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"math/big"
 	"net/http"
+	"sync/atomic"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -48,12 +49,6 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 		}
 		data = common.Hex2Bytes(string(data))
 
-		nonce, err := client.NonceAt(ctx, owner, nil)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
 		gas, err := client.EstimateGas(ctx, ethereum.CallMsg{
 			From:  owner,
 			To:    &to,
@@ -65,7 +60,8 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 			return
 		}
 
-		tx := types.NewTransaction(nonce, to, value, gas, gp, data)
+		n := atomic.LoadUint64(&nonce)
+		tx := types.NewTransaction(n, to, value, gas, gp, data)
 
 		valid, err := validate(rules, tx)
 		if err != nil {
@@ -88,6 +84,8 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		atomic.AddUint64(&nonce, 1)
 
 		w.Write([]byte(signedTx.Hash().String()))
 	}
