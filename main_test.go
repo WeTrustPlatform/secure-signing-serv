@@ -35,6 +35,7 @@ func Test_methodCall(t *testing.T) {
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 		}, 4000000)
 		nonce = 0
+		message := "hohay"
 
 		byteCode := helloworld.HelloWorldBin[2:]
 
@@ -73,7 +74,7 @@ func Test_methodCall(t *testing.T) {
 			return
 		}
 
-		data, err := ABI.Pack("setMessage", "heyho")
+		data, err := ABI.Pack("setMessage", message)
 		if err != nil {
 			t.Fatal(err)
 			return
@@ -110,6 +111,23 @@ func Test_methodCall(t *testing.T) {
 
 		if len(callReceipt.Logs) != 1 {
 			t.Errorf("response code = %v, want %v", len(callReceipt.Logs), 1)
+			return
+		}
+
+		contract, err := helloworld.NewHelloWorld(deployReceipt.ContractAddress, client)
+		if err != nil {
+			t.Fatal(err)
+			return
+		}
+
+		m, err := contract.Message(&bind.CallOpts{})
+		if err != nil {
+			t.Fatal(err)
+			return
+		}
+
+		if m != message {
+			t.Errorf("message = %v, want %v", m, message)
 			return
 		}
 	})
