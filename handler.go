@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"crypto/ecdsa"
-	"fmt"
 	"io/ioutil"
 	"math/big"
 	"net/http"
@@ -14,7 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-func txHandler(client Client, signer types.Signer, rules string, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
+func handler(client Client, signer types.Signer, rules string, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := context.Background()
 
@@ -77,8 +76,6 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 		} else {
 			tx = types.NewContractCreation(n, big.NewInt(0), gas, gp, data)
 		}
-
-		fmt.Println(tx)
 
 		valid, err := validate(rules, tx)
 		if err != nil {

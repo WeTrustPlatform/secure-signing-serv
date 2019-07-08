@@ -57,7 +57,7 @@ func main() {
 	}
 	signer := types.NewEIP155Signer(chainID)
 
-	http.HandleFunc("/tx", basicAuth(txHandler(
+	http.HandleFunc("/tx", basicAuth(handler(
 		client,
 		signer,
 		string(rules),
