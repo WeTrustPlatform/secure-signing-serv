@@ -6,12 +6,14 @@ import (
 	"io/ioutil"
 	"math/big"
 
-	"github.com/WeTrustPlatform/secure-signing-serv/client"
+	"github.com/WeTrustPlatform/secure-signing-serv/sss"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 func main() {
-	var endpoint, value, gasPrice, data string
+	var endpoint, to, value, gasPrice, data string
 	flag.StringVar(&endpoint, "E", "", "The S3 API endpoint")
+	flag.StringVar(&to, "to", "", "The receiver address")
 	flag.StringVar(&value, "value", "0", "The amount to be transfered")
 	flag.StringVar(&gasPrice, "gasprice", "0", "The price of the gas")
 	flag.StringVar(&data, "data", "", "Data field of the transaction")
@@ -28,8 +30,9 @@ func main() {
 		return
 	}
 
-	s3 := client.NewClient(endpoint)
-	resp, err := s3.Deploy(
+	c := sss.NewClient(endpoint)
+	resp, err := c.Transact(
+		common.HexToAddress(to),
 		v,
 		gp,
 		data,

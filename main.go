@@ -7,18 +7,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
-
-// Client allow passing an ethclient.Client or a backend.SimulatedBackend
-type Client interface {
-	ethereum.ChainStateReader
-	ethereum.TransactionSender
-	ethereum.GasEstimator
-}
 
 var nonce uint64
 
@@ -57,14 +49,7 @@ func main() {
 	}
 	signer := types.NewEIP155Signer(chainID)
 
-	http.HandleFunc("/tx", basicAuth(txHandler(
-		client,
-		signer,
-		string(rules),
-		key.Address,
-		key.PrivateKey)))
-
-	http.HandleFunc("/deploy", basicAuth(deployHandler(
+	http.HandleFunc("/tx", basicAuth(handler(
 		client,
 		signer,
 		string(rules),

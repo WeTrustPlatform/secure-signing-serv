@@ -3,55 +3,63 @@ package main
 import (
 	"context"
 	"crypto/ecdsa"
-	"io/ioutil"
+	"encoding/json"
 	"math/big"
 	"net/http"
 	"sync/atomic"
 
+	"github.com/WeTrustPlatform/secure-signing-serv/sss"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-func txHandler(client Client, signer types.Signer, rules string, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
+// Client allow passing an ethclient.Client or a backend.SimulatedBackend
+type Client interface {
+	ethereum.ChainStateReader
+	ethereum.TransactionSender
+	ethereum.GasEstimator
+}
+
+func handler(client Client, signer types.Signer, rules string, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var ok bool
 		ctx := context.Background()
 
-		err := r.ParseForm()
+		decoder := json.NewDecoder(r.Body)
+		var p sss.Payload
+		err := decoder.Decode(&p)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		to := common.HexToAddress(r.Form.Get("to"))
+		var to *common.Address
+		if p.To != "" {
+			address := common.HexToAddress(p.To)
+			to = &address
+		}
 
 		value := new(big.Int)
-		value, ok := value.SetString(r.Form.Get("value"), 10)
-		if !ok {
-			http.Error(w, "Couldn't convert value to big.Int", http.StatusBadRequest)
-			return
-		}
-
-		gp, ok := big.NewInt(0).SetString(r.Form.Get("gasPrice"), 10)
-		if !ok {
-			http.Error(w, "Couldn't convert gasPrice to big.Int", http.StatusBadRequest)
-			return
-		}
-
-		var data []byte
-		if r.Body != nil {
-			data, err = ioutil.ReadAll(r.Body)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+		if p.Value != "" {
+			value, ok = value.SetString(p.Value, 10)
+			if !ok {
+				http.Error(w, "couldn't convert value to big.Int", http.StatusBadRequest)
 				return
 			}
-			defer r.Body.Close()
 		}
-		data = common.Hex2Bytes(string(data))
+
+		gp, ok := big.NewInt(0).SetString(p.GasPrice, 10)
+		if !ok {
+			http.Error(w, "couldn't convert gasPrice to big.Int", http.StatusBadRequest)
+			return
+		}
+
+		data := common.Hex2Bytes(p.Data)
 
 		gas, err := client.EstimateGas(ctx, ethereum.CallMsg{
 			From:  owner,
-			To:    &to,
+			To:    to,
 			Value: value,
 			Data:  data,
 		})
@@ -61,7 +69,12 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 		}
 
 		n := atomic.LoadUint64(&nonce)
-		tx := types.NewTransaction(n, to, value, gas, gp, data)
+		var tx *types.Transaction
+		if to != nil {
+			tx = types.NewTransaction(n, *to, value, gas, gp, data)
+		} else {
+			tx = types.NewContractCreation(n, big.NewInt(0), gas, gp, data)
+		}
 
 		valid, err := validate(rules, tx)
 		if err != nil {
@@ -69,7 +82,7 @@ func txHandler(client Client, signer types.Signer, rules string, owner common.Ad
 			return
 		}
 		if !valid {
-			http.Error(w, "Invalid transaction", http.StatusUnauthorized)
+			http.Error(w, "invalid transaction", http.StatusUnauthorized)
 			return
 		}
 

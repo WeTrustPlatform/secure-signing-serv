@@ -3,13 +3,15 @@ package main
 import (
 	"bytes"
 	"context"
-	"fmt"
+	"encoding/json"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/WeTrustPlatform/secure-signing-serv/sss"
+	"github.com/WeTrustPlatform/secure-signing-serv/testdata/helloworld"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
@@ -17,17 +19,15 @@ import (
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-
-	"github.com/WeTrustPlatform/secure-signing-serv/testdata/helloworld"
 )
 
-func Test_methodCall(t *testing.T) {
+func Test_contractCall(t *testing.T) {
 	ctx := context.Background()
 
 	ownerKey, _ := crypto.GenerateKey()
 	owner := bind.NewKeyedTransactor(ownerKey)
 
-	rules := "function validate(tx) return true end"
+	rules := `function validate(tx) return true end`
 	signer := types.HomesteadSigner{}
 
 	t.Run("Can call a method of a smart contract", func(t *testing.T) {
@@ -39,18 +39,18 @@ func Test_methodCall(t *testing.T) {
 
 		byteCode := helloworld.HelloWorldBin[2:]
 
-		deployQuery := fmt.Sprintf("/deploy?gasPrice=%d", 1)
-		req, err := http.NewRequest("POST", deployQuery, bytes.NewBufferString(byteCode))
+		p := sss.Payload{GasPrice: "1", Data: byteCode}
+		b := new(bytes.Buffer)
+		json.NewEncoder(b).Encode(p)
+		req, err := http.NewRequest("POST", "/tx", b)
 		if err != nil {
 			t.Fatal(err)
 			return
 		}
 
-		h := deployHandler(client, signer, rules, owner.From, ownerKey)
-
+		h := handler(client, signer, rules, owner.From, ownerKey)
 		deployRR := httptest.NewRecorder()
 		h.ServeHTTP(deployRR, req)
-
 		client.Commit()
 
 		if deployRR.Code != 200 {
@@ -80,18 +80,18 @@ func Test_methodCall(t *testing.T) {
 			return
 		}
 
-		callQuery := fmt.Sprintf("/tx?to=%s&value=%d&gasPrice=%d", deployReceipt.ContractAddress.Hex(), 0, 1)
-		callReq, err := http.NewRequest("POST", callQuery, bytes.NewBufferString(common.Bytes2Hex(data)))
+		p2 := sss.Payload{To: deployReceipt.ContractAddress.Hex(), GasPrice: "1", Data: common.Bytes2Hex(data)}
+		b2 := new(bytes.Buffer)
+		json.NewEncoder(b2).Encode(p2)
+		callReq, err := http.NewRequest("POST", "/tx", b2)
 		if err != nil {
 			t.Fatal(err)
 			return
 		}
 
-		txh := txHandler(client, signer, rules, owner.From, ownerKey)
-
+		txh := handler(client, signer, rules, owner.From, ownerKey)
 		callRR := httptest.NewRecorder()
 		txh.ServeHTTP(callRR, callReq)
-
 		client.Commit()
 
 		if callRR.Code != 200 {

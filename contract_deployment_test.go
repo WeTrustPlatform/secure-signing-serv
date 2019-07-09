@@ -3,29 +3,29 @@ package main
 import (
 	"bytes"
 	"context"
-	"fmt"
+	"encoding/json"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/WeTrustPlatform/secure-signing-serv/sss"
+	"github.com/WeTrustPlatform/secure-signing-serv/testdata/helloworld"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
-
-	"github.com/WeTrustPlatform/secure-signing-serv/testdata/helloworld"
 )
 
-func Test_deployHandler(t *testing.T) {
+func Test_contractDeployment(t *testing.T) {
 	ctx := context.Background()
 
 	ownerKey, _ := crypto.GenerateKey()
 	owner := bind.NewKeyedTransactor(ownerKey)
 
-	rules := "function validate(tx) return true end"
+	rules := `function validate(tx) return true end`
 	signer := types.HomesteadSigner{}
 
 	t.Run("Can deploy a contract", func(t *testing.T) {
@@ -36,18 +36,18 @@ func Test_deployHandler(t *testing.T) {
 
 		byteCode := helloworld.HelloWorldBin[2:]
 
-		query := fmt.Sprintf("/deploy?gasPrice=%d", 1)
-		req, err := http.NewRequest("POST", query, bytes.NewBufferString(byteCode))
+		p := sss.Payload{GasPrice: "1", Data: byteCode}
+		b := new(bytes.Buffer)
+		json.NewEncoder(b).Encode(p)
+		req, err := http.NewRequest("POST", "/tx", b)
 		if err != nil {
 			t.Fatal(err)
 			return
 		}
 
-		h := deployHandler(client, signer, rules, owner.From, ownerKey)
-
+		h := handler(client, signer, rules, owner.From, ownerKey)
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
-
 		client.Commit()
 
 		if rr.Code != 200 {

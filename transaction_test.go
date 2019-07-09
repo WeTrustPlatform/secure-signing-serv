@@ -3,13 +3,14 @@ package main
 import (
 	"bytes"
 	"context"
-	"fmt"
+	"encoding/json"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
 
+	"github.com/WeTrustPlatform/secure-signing-serv/sss"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
@@ -18,7 +19,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-func Test_txHandler(t *testing.T) {
+func Test_transaction(t *testing.T) {
 	ctx := context.Background()
 
 	ownerKey, _ := crypto.GenerateKey()
@@ -36,18 +37,18 @@ func Test_txHandler(t *testing.T) {
 		}, 4000000)
 		nonce = 0
 
-		query := fmt.Sprintf("/tx?to=%s&value=%d&gasPrice=%d", tester.From.Hex(), 10000000000, 1)
-		req, err := http.NewRequest("POST", query, bytes.NewBufferString(""))
+		p := sss.Payload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1"}
+		b := new(bytes.Buffer)
+		json.NewEncoder(b).Encode(p)
+		req, err := http.NewRequest("POST", "/tx", b)
 		if err != nil {
 			t.Fatal(err)
 			return
 		}
 
-		h := txHandler(client, signer, rules, owner.From, ownerKey)
-
+		h := handler(client, signer, rules, owner.From, ownerKey)
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
-
 		client.Commit()
 
 		if rr.Code != 200 {
@@ -67,18 +68,18 @@ func Test_txHandler(t *testing.T) {
 		}, 4000000)
 		nonce = 0
 
-		query := fmt.Sprintf("/tx?to=%s&value=%d&gasPrice=%d", tester.From.Hex(), 10000000000, 1)
-		req, err := http.NewRequest("POST", query, bytes.NewBufferString("abcdef"))
+		p := sss.Payload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1", Data: "abcdef"}
+		b := new(bytes.Buffer)
+		json.NewEncoder(b).Encode(p)
+		req, err := http.NewRequest("POST", "/tx", b)
 		if err != nil {
 			t.Fatal(err)
 			return
 		}
 
-		h := txHandler(client, signer, rules, owner.From, ownerKey)
-
+		h := handler(client, signer, rules, owner.From, ownerKey)
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
-
 		client.Commit()
 
 		want := big.NewInt(10000000000)
