@@ -12,7 +12,7 @@ import (
 
 func main() {
 	var endpoint, to, value, gasPrice, data string
-	flag.StringVar(&endpoint, "E", "", "The S3 API endpoint")
+	flag.StringVar(&endpoint, "endpoint", "", "The 3S API endpoint")
 	flag.StringVar(&to, "to", "", "The receiver address")
 	flag.StringVar(&value, "value", "0", "The amount to be transfered")
 	flag.StringVar(&gasPrice, "gasprice", "0", "The price of the gas")
