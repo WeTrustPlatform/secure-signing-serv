@@ -22,7 +22,7 @@ func NewClient(e string) *Client {
 	}
 }
 
-// Transact performs a transaction or a contract call
+// Transact performs a transaction, a contract deployment or a contract call
 func (c *Client) Transact(to common.Address, value, gasPrice *big.Int, data string) (*http.Response, error) {
 	p := Payload{
 		To:       to.Hex(),
