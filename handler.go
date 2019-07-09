@@ -8,17 +8,17 @@ import (
 	"net/http"
 	"sync/atomic"
 
+	"github.com/WeTrustPlatform/secure-signing-serv/sss"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
-// Payload to unmarshal requests JSON encoded body
-type Payload struct {
-	To       string `json:"to"`       // destination address, optional
-	Value    string `json:"value"`    // amount to be transfered, optional
-	GasPrice string `json:"gasPrice"` // price of the gas unit, mandatory
-	Data     string `json:"data"`     // hex encoded data, optional
+// Client allow passing an ethclient.Client or a backend.SimulatedBackend
+type Client interface {
+	ethereum.ChainStateReader
+	ethereum.TransactionSender
+	ethereum.GasEstimator
 }
 
 func handler(client Client, signer types.Signer, rules string, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
@@ -27,10 +27,11 @@ func handler(client Client, signer types.Signer, rules string, owner common.Addr
 		ctx := context.Background()
 
 		decoder := json.NewDecoder(r.Body)
-		var p Payload
+		var p sss.Payload
 		err := decoder.Decode(&p)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 
 		var to *common.Address

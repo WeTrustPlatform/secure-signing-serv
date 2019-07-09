@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/WeTrustPlatform/secure-signing-serv/sss"
 	"github.com/WeTrustPlatform/secure-signing-serv/testdata/helloworld"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -38,7 +39,7 @@ func Test_contractCall(t *testing.T) {
 
 		byteCode := helloworld.HelloWorldBin[2:]
 
-		p := Payload{GasPrice: "1", Data: byteCode}
+		p := sss.Payload{GasPrice: "1", Data: byteCode}
 		b := new(bytes.Buffer)
 		json.NewEncoder(b).Encode(p)
 		req, err := http.NewRequest("POST", "/tx", b)
@@ -79,7 +80,7 @@ func Test_contractCall(t *testing.T) {
 			return
 		}
 
-		p2 := Payload{To: deployReceipt.ContractAddress.Hex(), GasPrice: "1", Data: common.Bytes2Hex(data)}
+		p2 := sss.Payload{To: deployReceipt.ContractAddress.Hex(), GasPrice: "1", Data: common.Bytes2Hex(data)}
 		b2 := new(bytes.Buffer)
 		json.NewEncoder(b2).Encode(p2)
 		callReq, err := http.NewRequest("POST", "/tx", b2)

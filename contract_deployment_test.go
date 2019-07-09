@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/WeTrustPlatform/secure-signing-serv/sss"
 	"github.com/WeTrustPlatform/secure-signing-serv/testdata/helloworld"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
@@ -35,7 +36,7 @@ func Test_contractDeployment(t *testing.T) {
 
 		byteCode := helloworld.HelloWorldBin[2:]
 
-		p := Payload{GasPrice: "1", Data: byteCode}
+		p := sss.Payload{GasPrice: "1", Data: byteCode}
 		b := new(bytes.Buffer)
 		json.NewEncoder(b).Encode(p)
 		req, err := http.NewRequest("POST", "/tx", b)

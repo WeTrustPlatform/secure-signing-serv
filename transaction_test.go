@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/WeTrustPlatform/secure-signing-serv/sss"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
 	"github.com/ethereum/go-ethereum/common"
@@ -36,7 +37,7 @@ func Test_transaction(t *testing.T) {
 		}, 4000000)
 		nonce = 0
 
-		p := Payload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1"}
+		p := sss.Payload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1"}
 		b := new(bytes.Buffer)
 		json.NewEncoder(b).Encode(p)
 		req, err := http.NewRequest("POST", "/tx", b)
@@ -67,7 +68,7 @@ func Test_transaction(t *testing.T) {
 		}, 4000000)
 		nonce = 0
 
-		p := Payload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1", Data: "abcdef"}
+		p := sss.Payload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1", Data: "abcdef"}
 		b := new(bytes.Buffer)
 		json.NewEncoder(b).Encode(p)
 		req, err := http.NewRequest("POST", "/tx", b)

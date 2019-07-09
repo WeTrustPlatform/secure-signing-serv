@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"math/big"
 
-	"github.com/WeTrustPlatform/secure-signing-serv/client"
+	"github.com/WeTrustPlatform/secure-signing-serv/sss"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -30,8 +30,8 @@ func main() {
 		return
 	}
 
-	s3 := client.NewClient(endpoint)
-	resp, err := s3.Transact(
+	c := sss.NewClient(endpoint)
+	resp, err := c.Transact(
 		common.HexToAddress(to),
 		v,
 		gp,
