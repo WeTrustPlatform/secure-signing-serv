@@ -30,7 +30,7 @@ func handler(client Client, signer types.Signer, rules string, owner common.Addr
 		var p Payload
 		err := decoder.Decode(&p)
 		if err != nil {
-			http.Error(w, err.Error(), 403)
+			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 
 		var to *common.Address
@@ -68,7 +68,7 @@ func handler(client Client, signer types.Signer, rules string, owner common.Addr
 		}
 
 		n := atomic.LoadUint64(&nonce)
-		tx := &types.Transaction{}
+		var tx *types.Transaction
 		if to != nil {
 			tx = types.NewTransaction(n, *to, value, gas, gp, data)
 		} else {
