@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"math/big"
 	"net/http"
-	"sync/atomic"
 
 	"github.com/WeTrustPlatform/secure-signing-serv/sss"
 	"github.com/ethereum/go-ethereum"
@@ -19,6 +18,7 @@ type Client interface {
 	ethereum.ChainStateReader
 	ethereum.TransactionSender
 	ethereum.GasEstimator
+	PendingNonceAt(ctx context.Context, account common.Address) (uint64, error)
 }
 
 func handler(client Client, signer types.Signer, rules string, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
@@ -68,12 +68,17 @@ func handler(client Client, signer types.Signer, rules string, owner common.Addr
 			return
 		}
 
-		n := atomic.LoadUint64(&nonce)
+		nonce, err := client.PendingNonceAt(ctx, owner)
+		if err != nil {
+			http.Error(w, "error getting pending nonce: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		var tx *types.Transaction
 		if to != nil {
-			tx = types.NewTransaction(n, *to, value, gas, gp, data)
+			tx = types.NewTransaction(nonce, *to, value, gas, gp, data)
 		} else {
-			tx = types.NewContractCreation(n, big.NewInt(0), gas, gp, data)
+			tx = types.NewContractCreation(nonce, big.NewInt(0), gas, gp, data)
 		}
 
 		valid, err := validate(rules, tx)
@@ -97,8 +102,6 @@ func handler(client Client, signer types.Signer, rules string, owner common.Addr
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
-		atomic.AddUint64(&nonce, 1)
 
 		w.Write([]byte(signedTx.Hash().String()))
 	}

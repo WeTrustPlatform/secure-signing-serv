@@ -35,7 +35,6 @@ func Test_transaction(t *testing.T) {
 		client := backends.NewSimulatedBackend(core.GenesisAlloc{
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 		}, 4000000)
-		nonce = 0
 
 		p := sss.Payload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1"}
 		b := new(bytes.Buffer)
@@ -66,7 +65,6 @@ func Test_transaction(t *testing.T) {
 		client := backends.NewSimulatedBackend(core.GenesisAlloc{
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 		}, 4000000)
-		nonce = 0
 
 		p := sss.Payload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1", Data: "abcdef"}
 		b := new(bytes.Buffer)

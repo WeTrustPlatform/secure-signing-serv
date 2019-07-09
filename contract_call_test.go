@@ -34,7 +34,6 @@ func Test_contractCall(t *testing.T) {
 		client := backends.NewSimulatedBackend(core.GenesisAlloc{
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 		}, 4000000)
-		nonce = 0
 		message := "hohay"
 
 		byteCode := helloworld.HelloWorldBin[2:]
