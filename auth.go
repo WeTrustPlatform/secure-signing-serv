@@ -11,7 +11,7 @@ func basicAuth(h http.HandlerFunc) http.HandlerFunc {
 
 		if user != os.Getenv("BASIC_AUTH_USER") || pass != os.Getenv("BASIC_AUTH_PASS") {
 			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
-			http.Error(w, "Unauthorized.", http.StatusUnauthorized)
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
 

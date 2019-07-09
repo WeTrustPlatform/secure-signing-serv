@@ -30,7 +30,7 @@ func handler(client Client, signer types.Signer, rules string, owner common.Addr
 		var p sss.Payload
 		err := decoder.Decode(&p)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, "error decoding payload: "+err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -64,7 +64,7 @@ func handler(client Client, signer types.Signer, rules string, owner common.Addr
 			Data:  data,
 		})
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, "error estimating gas: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -78,11 +78,11 @@ func handler(client Client, signer types.Signer, rules string, owner common.Addr
 
 		valid, err := validate(rules, tx)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, "error validating transaction: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 		if !valid {
-			http.Error(w, "invalid transaction", http.StatusUnauthorized)
+			http.Error(w, "transaction forbidden", http.StatusForbidden)
 			return
 		}
 
