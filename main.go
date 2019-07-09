@@ -49,7 +49,7 @@ func main() {
 	}
 	signer := types.NewEIP155Signer(chainID)
 
-	http.HandleFunc("/v1/proxy/transaction", basicAuth(handler(
+	http.HandleFunc("/v1/proxy/transactions", basicAuth(handler(
 		client,
 		signer,
 		string(rules),

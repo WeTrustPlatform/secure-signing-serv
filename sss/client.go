@@ -32,5 +32,5 @@ func (c *Client) Transact(to common.Address, value, gasPrice *big.Int, data stri
 	}
 	b := new(bytes.Buffer)
 	json.NewEncoder(b).Encode(p)
-	return http.Post(c.Endpoint+"/tx", "application/json", b)
+	return http.Post(c.Endpoint+"/v1/proxy/transactions", "application/json", b)
 }
