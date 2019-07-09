@@ -18,7 +18,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-func Test_handler(t *testing.T) {
+func Test_transaction(t *testing.T) {
 	ctx := context.Background()
 
 	ownerKey, _ := crypto.GenerateKey()
