@@ -1,7 +1,6 @@
 package main
 
 import (
-	"io/ioutil"
 	"math/big"
 	"net/http"
 	"os"
@@ -30,10 +29,7 @@ func main() {
 		panic(err)
 	}
 
-	rules, err := ioutil.ReadFile("rules.lua")
-	if err != nil {
-		panic(err)
-	}
+	rules := os.Getenv("RULES")
 
 	chainID, ok := big.NewInt(0).SetString(os.Getenv("CHAIN_ID"), 10)
 	if !ok {
