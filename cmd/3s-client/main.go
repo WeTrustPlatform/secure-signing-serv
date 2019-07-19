@@ -30,9 +30,15 @@ func main() {
 		return
 	}
 
+	var toAddrPtr *common.Address
+	if to != "" {
+		addr := common.HexToAddress(to)
+		toAddrPtr = &addr
+	}
+
 	c := sss.NewClient(endpoint)
 	resp, err := c.Transact(
-		common.HexToAddress(to),
+		toAddrPtr,
 		v,
 		gp,
 		data,

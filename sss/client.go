@@ -23,9 +23,13 @@ func NewClient(e string) *Client {
 }
 
 // Transact performs a transaction, a contract deployment or a contract call
-func (c *Client) Transact(to common.Address, value, gasPrice *big.Int, data string) (*http.Response, error) {
+func (c *Client) Transact(to *common.Address, value, gasPrice *big.Int, data string) (*http.Response, error) {
+	toStr := ""
+	if to != nil {
+		toStr = to.Hex()
+	}
 	p := Payload{
-		To:       to.Hex(),
+		To:       toStr,
 		Value:    value.String(),
 		GasPrice: gasPrice.String(),
 		Data:     data,
