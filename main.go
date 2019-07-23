@@ -49,7 +49,7 @@ func main() {
 	http.HandleFunc("/v1/proxy/transactions", basicAuth(handler(
 		client,
 		signer,
-		string(rules),
+		rules,
 		key.Address,
 		key.PrivateKey,
 		db)))

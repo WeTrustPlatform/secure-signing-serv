@@ -14,7 +14,7 @@ func txToLTable(L *lua.LState, tx *types.Transaction) *lua.LTable {
 		L.SetField(t, "value", lua.LString(tx.Value().String()))
 	}
 	if tx.Data() != nil {
-		L.SetField(t, "data", lua.LString(string(tx.Data()[:])))
+		L.SetField(t, "data", lua.LString(string(tx.Data())))
 	}
 	return t
 }
