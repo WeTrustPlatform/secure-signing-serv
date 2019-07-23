@@ -15,7 +15,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// Client allow passing an ethclient.Client or a backend.SimulatedBackend
+// Client allows passing an ethclient.Client or a backend.SimulatedBackend
 type Client interface {
 	ethereum.ChainStateReader
 	ethereum.TransactionSender
@@ -23,6 +23,7 @@ type Client interface {
 	PendingNonceAt(ctx context.Context, account common.Address) (uint64, error)
 }
 
+// Recorder allows mocking the database operations
 type Recorder interface {
 	Create(interface{}) *gorm.DB
 }
