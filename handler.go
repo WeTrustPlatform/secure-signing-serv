@@ -128,7 +128,7 @@ func handler(
 			Value:    value.String(),
 			Gas:      gas,
 			GasPrice: gp.String(),
-			Data:     string(data),
+			Data:     p.Data,
 			Hash:     signedTx.Hash().String(),
 		})
 
