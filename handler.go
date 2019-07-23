@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+
 	"github.com/jinzhu/gorm"
 )
 
@@ -22,13 +23,17 @@ type Client interface {
 	PendingNonceAt(ctx context.Context, account common.Address) (uint64, error)
 }
 
+type Recorder interface {
+	Create(interface{}) *gorm.DB
+}
+
 func handler(
 	client Client,
 	signer types.Signer,
 	rules string,
 	owner common.Address,
 	key *ecdsa.PrivateKey,
-	db *gorm.DB,
+	db Recorder,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var ok bool
@@ -111,9 +116,14 @@ func handler(
 			return
 		}
 
+		toStr := ""
+		if to != nil {
+			toStr = to.Hex()
+		}
+
 		db.Create(&transaction{
 			Nonce:    nonce,
-			To:       to.Hex(),
+			To:       toStr,
 			Value:    value.String(),
 			Gas:      gas,
 			GasPrice: gp.String(),
