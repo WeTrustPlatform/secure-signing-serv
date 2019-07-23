@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/jinzhu/gorm"
+	log "github.com/sirupsen/logrus"
 )
 
 // Client allows passing an ethclient.Client or a backend.SimulatedBackend
@@ -101,7 +102,15 @@ func handler(
 			return
 		}
 		if !valid {
-			http.Error(w, "transaction forbidden", http.StatusForbidden)
+			log.WithFields(log.Fields{
+				"Nonce":    nonce,
+				"To":       p.To,
+				"Value":    value.String(),
+				"Gas":      gas,
+				"GasPrice": gp.String(),
+				"Hash":     tx.Hash().String(),
+			}).Warning("Forbidden transaction")
+			http.Error(w, "forbidden transaction", http.StatusForbidden)
 			return
 		}
 
@@ -117,20 +126,24 @@ func handler(
 			return
 		}
 
-		toStr := ""
-		if to != nil {
-			toStr = to.Hex()
-		}
-
 		db.Create(&transaction{
 			Nonce:    nonce,
-			To:       toStr,
+			To:       p.To,
 			Value:    value.String(),
 			Gas:      gas,
 			GasPrice: gp.String(),
 			Data:     p.Data,
 			Hash:     signedTx.Hash().String(),
 		})
+
+		log.WithFields(log.Fields{
+			"Nonce":    nonce,
+			"To":       p.To,
+			"Value":    value.String(),
+			"Gas":      gas,
+			"GasPrice": gp.String(),
+			"Hash":     signedTx.Hash().String(),
+		}).Info("Successfully forwared transaction")
 
 		w.Write([]byte(signedTx.Hash().String()))
 	}
