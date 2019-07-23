@@ -102,7 +102,15 @@ func handler(
 			return
 		}
 		if !valid {
-			http.Error(w, "transaction forbidden", http.StatusForbidden)
+			log.WithFields(log.Fields{
+				"Nonce":    nonce,
+				"To":       p.To,
+				"Value":    value.String(),
+				"Gas":      gas,
+				"GasPrice": gp.String(),
+				"Hash":     tx.Hash().String(),
+			}).Warning("Forbidden transaction")
+			http.Error(w, "forbidden transaction", http.StatusForbidden)
 			return
 		}
 
@@ -118,14 +126,9 @@ func handler(
 			return
 		}
 
-		toStr := ""
-		if to != nil {
-			toStr = to.Hex()
-		}
-
 		db.Create(&transaction{
 			Nonce:    nonce,
-			To:       toStr,
+			To:       p.To,
 			Value:    value.String(),
 			Gas:      gas,
 			GasPrice: gp.String(),
@@ -135,7 +138,7 @@ func handler(
 
 		log.WithFields(log.Fields{
 			"Nonce":    nonce,
-			"To":       toStr,
+			"To":       p.To,
 			"Value":    value.String(),
 			"Gas":      gas,
 			"GasPrice": gp.String(),
