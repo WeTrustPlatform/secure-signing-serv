@@ -45,7 +45,7 @@ func Test_transaction(t *testing.T) {
 			return
 		}
 
-		h := handler(client, signer, rules, owner.From, ownerKey)
+		h := handler(client, signer, rules, owner.From, ownerKey, &dbMock{})
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 		client.Commit()
@@ -75,7 +75,7 @@ func Test_transaction(t *testing.T) {
 			return
 		}
 
-		h := handler(client, signer, rules, owner.From, ownerKey)
+		h := handler(client, signer, rules, owner.From, ownerKey, &dbMock{})
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 		client.Commit()

@@ -47,7 +47,7 @@ func Test_contractCall(t *testing.T) {
 			return
 		}
 
-		h := handler(client, signer, rules, owner.From, ownerKey)
+		h := handler(client, signer, rules, owner.From, ownerKey, &dbMock{})
 		deployRR := httptest.NewRecorder()
 		h.ServeHTTP(deployRR, req)
 		client.Commit()
@@ -88,7 +88,7 @@ func Test_contractCall(t *testing.T) {
 			return
 		}
 
-		txh := handler(client, signer, rules, owner.From, ownerKey)
+		txh := handler(client, signer, rules, owner.From, ownerKey, &dbMock{})
 		callRR := httptest.NewRecorder()
 		txh.ServeHTTP(callRR, callReq)
 		client.Commit()
