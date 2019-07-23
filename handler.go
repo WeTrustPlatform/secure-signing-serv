@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/jinzhu/gorm"
+	log "github.com/sirupsen/logrus"
 )
 
 // Client allows passing an ethclient.Client or a backend.SimulatedBackend
@@ -131,6 +132,15 @@ func handler(
 			Data:     p.Data,
 			Hash:     signedTx.Hash().String(),
 		})
+
+		log.WithFields(log.Fields{
+			"Nonce":    nonce,
+			"To":       toStr,
+			"Value":    value.String(),
+			"Gas":      gas,
+			"GasPrice": gp.String(),
+			"Hash":     signedTx.Hash().String(),
+		}).Info("Successfully forwared transaction")
 
 		w.Write([]byte(signedTx.Hash().String()))
 	}

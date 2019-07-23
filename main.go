@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -11,9 +12,12 @@ import (
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	log "github.com/sirupsen/logrus"
 )
 
 func main() {
+	logInit()
+
 	for _, v := range []string{"RPC_ENDPOINT", "PRIV_KEY", "PASSPHRASE", "PORT", "BASIC_AUTH_USER", "BASIC_AUTH_PASS", "CHAIN_ID"} {
 		if os.Getenv(v) == "" {
 			panic("Environment variable not set: " + v)
@@ -55,4 +59,34 @@ func main() {
 		db)))
 
 	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+}
+
+func logInit() {
+	// Setup log formatter. Default is JSON for production and staging.
+	var formatter log.Formatter
+	switch os.Getenv("LOG_FORMATTER") {
+	case "text":
+		formatter = &log.TextFormatter{}
+	default:
+		formatter = &log.JSONFormatter{}
+	}
+	log.SetFormatter(formatter)
+
+	// Output to stdout instead of the default stderr
+	// Can be any io.Writer, see below for File example
+	log.SetOutput(os.Stdout)
+
+	// Only log the warning severity or above.
+	logLevel := os.Getenv("LOG_LEVEL")
+	logLevelMap := map[string]log.Level{
+		"":      log.InfoLevel,
+		"panic": log.PanicLevel,
+		"fatal": log.FatalLevel,
+		"error": log.ErrorLevel,
+		"warn":  log.WarnLevel,
+		"info":  log.InfoLevel,
+		"debug": log.DebugLevel,
+		"trace": log.TraceLevel,
+	}
+	log.SetLevel(logLevelMap[strings.ToLower(logLevel)])
 }
