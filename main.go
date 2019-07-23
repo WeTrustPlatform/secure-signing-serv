@@ -67,14 +67,12 @@ func main() {
 
 func logInit() {
 	// Setup log formatter. Default is JSON for production and staging.
-	var formatter log.Formatter
 	switch os.Getenv("LOG_FORMATTER") {
 	case "text":
-		formatter = &log.TextFormatter{}
+		log.SetFormatter(&log.TextFormatter{})
 	default:
-		formatter = &log.JSONFormatter{}
+		log.SetFormatter(&log.JSONFormatter{})
 	}
-	log.SetFormatter(formatter)
 
 	// Only log the warning severity or above.
 	logLevel := os.Getenv("LOG_LEVEL")
