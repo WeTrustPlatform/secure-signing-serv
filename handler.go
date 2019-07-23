@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/jinzhu/gorm"
 )
 
 // Client allow passing an ethclient.Client or a backend.SimulatedBackend
@@ -21,7 +22,14 @@ type Client interface {
 	PendingNonceAt(ctx context.Context, account common.Address) (uint64, error)
 }
 
-func handler(client Client, signer types.Signer, rules string, owner common.Address, key *ecdsa.PrivateKey) http.HandlerFunc {
+func handler(
+	client Client,
+	signer types.Signer,
+	rules string,
+	owner common.Address,
+	key *ecdsa.PrivateKey,
+	db *gorm.DB,
+) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var ok bool
 		ctx := context.Background()
@@ -102,6 +110,16 @@ func handler(client Client, signer types.Signer, rules string, owner common.Addr
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
+		db.Create(&transaction{
+			Nonce:    nonce,
+			To:       to.Hex(),
+			Value:    value.String(),
+			Gas:      gas,
+			GasPrice: gp.String(),
+			Data:     string(data),
+			Hash:     signedTx.Hash().String(),
+		})
 
 		w.Write([]byte(signedTx.Hash().String()))
 	}

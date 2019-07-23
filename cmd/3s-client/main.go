@@ -14,7 +14,7 @@ func main() {
 	var endpoint, to, value, gasPrice, data string
 	flag.StringVar(&endpoint, "endpoint", "", "The 3S API endpoint")
 	flag.StringVar(&to, "to", "", "The receiver address")
-	flag.StringVar(&value, "value", "0", "The amount to be transfered")
+	flag.StringVar(&value, "value", "0", "The amount to be transferred")
 	flag.StringVar(&gasPrice, "gasprice", "0", "The price of the gas")
 	flag.StringVar(&data, "data", "", "Data field of the transaction")
 	flag.Parse()

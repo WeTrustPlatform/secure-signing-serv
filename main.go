@@ -8,6 +8,9 @@ import (
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 func main() {
@@ -21,6 +24,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	db, err := gorm.Open("postgres", os.Getenv("DATABASE_URL"))
+	if err != nil {
+		panic(err)
+	}
+	db.AutoMigrate(&transaction{})
 
 	keyJSON := os.Getenv("PRIV_KEY")
 	pass := os.Getenv("PASSPHRASE")
@@ -42,7 +51,8 @@ func main() {
 		signer,
 		string(rules),
 		key.Address,
-		key.PrivateKey)))
+		key.PrivateKey,
+		db)))
 
 	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }
