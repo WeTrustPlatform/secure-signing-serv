@@ -58,6 +58,10 @@ func main() {
 		key.PrivateKey,
 		db)))
 
+	log.WithFields(log.Fields{
+		"PORT": os.Getenv("PORT"),
+	}).Info("Listening")
+
 	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }
 
@@ -71,10 +75,6 @@ func logInit() {
 		formatter = &log.JSONFormatter{}
 	}
 	log.SetFormatter(formatter)
-
-	// Output to stdout instead of the default stderr
-	// Can be any io.Writer, see below for File example
-	log.SetOutput(os.Stdout)
 
 	// Only log the warning severity or above.
 	logLevel := os.Getenv("LOG_LEVEL")
