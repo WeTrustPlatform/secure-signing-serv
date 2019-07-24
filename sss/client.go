@@ -38,3 +38,14 @@ func (c *Client) Transact(to *common.Address, value, gasPrice *big.Int, data str
 	json.NewEncoder(b).Encode(p)
 	return http.Post(c.Endpoint+"/v1/proxy/transactions", "application/json", b)
 }
+
+// Retry retries a failed transaction with a different gas price
+func (c *Client) Retry(hash common.Hash, gasPrice *big.Int) (*http.Response, error) {
+	p := RetryPayload{
+		Hash:     hash.Hex(),
+		GasPrice: gasPrice.String(),
+	}
+	b := new(bytes.Buffer)
+	json.NewEncoder(b).Encode(p)
+	return http.Post(c.Endpoint+"/v1/proxy/transactions/retry", "application/json", b)
+}
