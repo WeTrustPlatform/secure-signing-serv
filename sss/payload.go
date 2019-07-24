@@ -9,7 +9,10 @@ type TxPayload struct {
 }
 
 // RetryPayload to unmarshal payload when patching a transaction
-type RetryPayload struct {
+type RetryPayload []PatchOperation
+
+// PatchOperation is an operation of an HTTP PATCH
+type PatchOperation struct {
 	Op    string `json:"op"`    // operation
 	Path  string `json:"path"`  // path to operate on
 	Value string `json:"value"` // new value

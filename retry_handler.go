@@ -41,12 +41,12 @@ func retryHandler(
 			return
 		}
 
-		if p.Op != "replace" || p.Path != "/gasPrice" {
+		if len(p) != 1 || p[0].Op != "replace" || p[0].Path != "/gasPrice" {
 			http.Error(w, "only replacing gasPrice is supported", http.StatusBadRequest)
 			return
 		}
 
-		gp, ok := big.NewInt(0).SetString(p.Value, 10)
+		gp, ok := big.NewInt(0).SetString(p[0].Value, 10)
 		if !ok {
 			http.Error(w, "couldn't convert gasPrice to big.Int", http.StatusBadRequest)
 			return

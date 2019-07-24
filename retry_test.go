@@ -62,7 +62,9 @@ func Test_retry(t *testing.T) {
 		// Retry
 
 		hash := rr.Body.String()
-		rp := sss.RetryPayload{Op: "replace", Path: "/gasPrice", Value: "2"}
+		rp := sss.RetryPayload{
+			sss.PatchOperation{Op: "replace", Path: "/gasPrice", Value: "2"},
+		}
 		rb := new(bytes.Buffer)
 		json.NewEncoder(rb).Encode(rp)
 		rreq, err := http.NewRequest("PATCH", "/v1/proxy/transactions/"+hash, rb)
