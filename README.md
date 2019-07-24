@@ -32,6 +32,10 @@ Calling a smart contract method:
 
     curl -X POST "http://your-api-key:your-api-secret@localhost:3005/v1/proxy/transactions" -H "Content-Type: application/json" --data '{"to":"0xC7f965a58942dbf4E9fbdf77A511863d7041339d","gasPrice":"40000000000","data":"368b877200000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000008626172626f757365000000000000000000000000000000000000000000000000"}'
 
+Retrying a transaction with higher gas price:
+
+    curl -X POST "http://your-api-key:your-api-secret@localhost:3005/v1/proxy/transactions/retry" -H "Content-Type: application/json" --data '{"hash":"0x9a08c7c158b6d0bdf43cd2af6e78892edf01e25a4306f3063ab610a48d0e5c0b","gasPrice":"20000000000"}'
+
 ## Whitelisting transactions
 
 You can write a Lua script that check the transaction properties to filter transactions.

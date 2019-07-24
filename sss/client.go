@@ -28,7 +28,7 @@ func (c *Client) Transact(to *common.Address, value, gasPrice *big.Int, data str
 	if to != nil {
 		toStr = to.Hex()
 	}
-	p := Payload{
+	p := TxPayload{
 		To:       toStr,
 		Value:    value.String(),
 		GasPrice: gasPrice.String(),

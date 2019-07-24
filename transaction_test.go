@@ -36,7 +36,7 @@ func Test_transaction(t *testing.T) {
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 		}, 4000000)
 
-		p := sss.Payload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1"}
+		p := sss.TxPayload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1"}
 		b := new(bytes.Buffer)
 		json.NewEncoder(b).Encode(p)
 		req, err := http.NewRequest("POST", "/tx", b)
@@ -45,7 +45,7 @@ func Test_transaction(t *testing.T) {
 			return
 		}
 
-		h := handler(client, signer, rules, owner.From, ownerKey, &dbMock{})
+		h := txHandler(client, signer, rules, owner.From, ownerKey, &dbMock{})
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 		client.Commit()
@@ -66,7 +66,7 @@ func Test_transaction(t *testing.T) {
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 		}, 4000000)
 
-		p := sss.Payload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1", Data: "abcdef"}
+		p := sss.TxPayload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1", Data: "abcdef"}
 		b := new(bytes.Buffer)
 		json.NewEncoder(b).Encode(p)
 		req, err := http.NewRequest("POST", "/tx", b)
@@ -75,7 +75,7 @@ func Test_transaction(t *testing.T) {
 			return
 		}
 
-		h := handler(client, signer, rules, owner.From, ownerKey, &dbMock{})
+		h := txHandler(client, signer, rules, owner.From, ownerKey, &dbMock{})
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 		client.Commit()

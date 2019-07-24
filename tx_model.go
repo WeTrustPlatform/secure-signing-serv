@@ -3,6 +3,7 @@ package main
 import "github.com/jinzhu/gorm"
 
 type transaction struct {
+	gorm.Model
 	Nonce    uint64
 	To       string
 	Value    string
@@ -10,6 +11,4 @@ type transaction struct {
 	GasPrice string
 	Data     string
 	Hash     string `gorm:"unique_index"`
-
-	gorm.Model
 }

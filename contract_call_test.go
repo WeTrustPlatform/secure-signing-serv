@@ -38,7 +38,7 @@ func Test_contractCall(t *testing.T) {
 
 		byteCode := helloworld.HelloWorldBin[2:]
 
-		p := sss.Payload{GasPrice: "1", Data: byteCode}
+		p := sss.TxPayload{GasPrice: "1", Data: byteCode}
 		b := new(bytes.Buffer)
 		json.NewEncoder(b).Encode(p)
 		req, err := http.NewRequest("POST", "/tx", b)
@@ -47,7 +47,7 @@ func Test_contractCall(t *testing.T) {
 			return
 		}
 
-		h := handler(client, signer, rules, owner.From, ownerKey, &dbMock{})
+		h := txHandler(client, signer, rules, owner.From, ownerKey, &dbMock{})
 		deployRR := httptest.NewRecorder()
 		h.ServeHTTP(deployRR, req)
 		client.Commit()
@@ -79,7 +79,7 @@ func Test_contractCall(t *testing.T) {
 			return
 		}
 
-		p2 := sss.Payload{To: deployReceipt.ContractAddress.Hex(), GasPrice: "1", Data: common.Bytes2Hex(data)}
+		p2 := sss.TxPayload{To: deployReceipt.ContractAddress.Hex(), GasPrice: "1", Data: common.Bytes2Hex(data)}
 		b2 := new(bytes.Buffer)
 		json.NewEncoder(b2).Encode(p2)
 		callReq, err := http.NewRequest("POST", "/tx", b2)
@@ -88,7 +88,7 @@ func Test_contractCall(t *testing.T) {
 			return
 		}
 
-		txh := handler(client, signer, rules, owner.From, ownerKey, &dbMock{})
+		txh := txHandler(client, signer, rules, owner.From, ownerKey, &dbMock{})
 		callRR := httptest.NewRecorder()
 		txh.ServeHTTP(callRR, callReq)
 		client.Commit()

@@ -50,7 +50,15 @@ func main() {
 	}
 	signer := types.NewEIP155Signer(chainID)
 
-	http.HandleFunc("/v1/proxy/transactions", basicAuth(handler(
+	http.HandleFunc("/v1/proxy/transactions", basicAuth(txHandler(
+		client,
+		signer,
+		rules,
+		key.Address,
+		key.PrivateKey,
+		db)))
+
+	http.HandleFunc("/v1/proxy/transactions/retry", basicAuth(retryHandler(
 		client,
 		signer,
 		rules,

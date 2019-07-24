@@ -35,7 +35,7 @@ func Test_contractDeployment(t *testing.T) {
 
 		byteCode := helloworld.HelloWorldBin[2:]
 
-		p := sss.Payload{GasPrice: "1", Data: byteCode}
+		p := sss.TxPayload{GasPrice: "1", Data: byteCode}
 		b := new(bytes.Buffer)
 		json.NewEncoder(b).Encode(p)
 		req, err := http.NewRequest("POST", "/tx", b)
@@ -44,7 +44,7 @@ func Test_contractDeployment(t *testing.T) {
 			return
 		}
 
-		h := handler(client, signer, rules, owner.From, ownerKey, &dbMock{})
+		h := txHandler(client, signer, rules, owner.From, ownerKey, &dbMock{})
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
 		client.Commit()
