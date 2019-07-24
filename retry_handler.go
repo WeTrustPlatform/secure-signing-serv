@@ -41,7 +41,7 @@ func retryHandler(
 		}
 
 		oldTx := transaction{}
-		db.Where("hash = ?", p.Hash).First(&oldTx)
+		db.First(&oldTx, "hash = ?", p.Hash)
 
 		var tx *types.Transaction
 		if oldTx.To != "" {

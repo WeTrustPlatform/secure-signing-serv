@@ -27,7 +27,6 @@ type Client interface {
 // Recorder allows mocking the database operations
 type Recorder interface {
 	Create(interface{}) *gorm.DB
-	Where(interface{}, ...interface{}) *gorm.DB
 	First(interface{}, ...interface{}) *gorm.DB
 	Save(interface{}) *gorm.DB
 }
