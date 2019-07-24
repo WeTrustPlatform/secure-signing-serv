@@ -27,9 +27,11 @@ type Client interface {
 // Recorder allows mocking the database operations
 type Recorder interface {
 	Create(interface{}) *gorm.DB
+	First(interface{}, ...interface{}) *gorm.DB
+	Save(interface{}) *gorm.DB
 }
 
-func handler(
+func txHandler(
 	client Client,
 	signer types.Signer,
 	rules string,
@@ -42,7 +44,7 @@ func handler(
 		ctx := context.Background()
 
 		decoder := json.NewDecoder(r.Body)
-		var p sss.Payload
+		var p sss.TxPayload
 		err := decoder.Decode(&p)
 		if err != nil {
 			http.Error(w, "error decoding payload: "+err.Error(), http.StatusBadRequest)

@@ -13,15 +13,12 @@ import (
 	"github.com/WeTrustPlatform/secure-signing-serv/sss"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-func Test_transaction(t *testing.T) {
-	ctx := context.Background()
-
+func Test_retry(t *testing.T) {
 	ownerKey, _ := crypto.GenerateKey()
 	owner := bind.NewKeyedTransactor(ownerKey)
 
@@ -31,7 +28,9 @@ func Test_transaction(t *testing.T) {
 	rules := `function validate(tx) return true end`
 	signer := types.HomesteadSigner{}
 
-	t.Run("Can transact with value", func(t *testing.T) {
+	db := &dbMock{}
+
+	t.Run("Can replace a transaction", func(t *testing.T) {
 		client := backends.NewSimulatedBackend(core.GenesisAlloc{
 			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
 		}, 4000000)
@@ -39,61 +38,53 @@ func Test_transaction(t *testing.T) {
 		p := sss.TxPayload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1"}
 		b := new(bytes.Buffer)
 		json.NewEncoder(b).Encode(p)
-		req, err := http.NewRequest("POST", "/tx", b)
+		req, err := http.NewRequest("POST", "/v1/proxy/transactions", b)
 		if err != nil {
 			t.Fatal(err)
 			return
 		}
 
-		h := txHandler(client, signer, rules, owner.From, ownerKey, &dbMock{})
+		h := txHandler(client, signer, rules, owner.From, ownerKey, db)
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
-		client.Commit()
+		client.Rollback()
 
 		if rr.Code != 200 {
 			t.Errorf("response code = %v, want %v", rr.Code, 200)
 		}
 
-		want := big.NewInt(10000000000)
+		want := big.NewInt(0)
 		if got, _ := client.BalanceAt(context.Background(), tester.From, nil); !reflect.DeepEqual(got, want) {
 			t.Errorf("tester balance = %v, want %v", got, want)
 			return
 		}
-	})
 
-	t.Run("Can transact with data", func(t *testing.T) {
-		client := backends.NewSimulatedBackend(core.GenesisAlloc{
-			owner.From: core.GenesisAccount{Balance: big.NewInt(50000000000)},
-		}, 4000000)
+		// Retry
 
-		p := sss.TxPayload{To: tester.From.Hex(), Value: "10000000000", GasPrice: "1", Data: "abcdef"}
-		b := new(bytes.Buffer)
-		json.NewEncoder(b).Encode(p)
-		req, err := http.NewRequest("POST", "/tx", b)
+		hash := rr.Body.String()
+		rp := sss.RetryPayload{
+			sss.PatchOperation{Op: "replace", Path: "/gasPrice", Value: "2"},
+		}
+		rb := new(bytes.Buffer)
+		json.NewEncoder(rb).Encode(rp)
+		rreq, err := http.NewRequest("PATCH", "/v1/proxy/transactions/"+hash, rb)
 		if err != nil {
 			t.Fatal(err)
 			return
 		}
 
-		h := txHandler(client, signer, rules, owner.From, ownerKey, &dbMock{})
-		rr := httptest.NewRecorder()
-		h.ServeHTTP(rr, req)
+		rh := retryHandler(client, signer, rules, owner.From, ownerKey, db)
+		rrr := httptest.NewRecorder()
+		rh.ServeHTTP(rrr, rreq)
 		client.Commit()
 
-		want := big.NewInt(10000000000)
+		if rrr.Code != 200 {
+			t.Errorf("response code = %v, want %v", rrr.Code, 200)
+		}
+
+		want = big.NewInt(10000000000)
 		if got, _ := client.BalanceAt(context.Background(), tester.From, nil); !reflect.DeepEqual(got, want) {
 			t.Errorf("tester balance = %v, want %v", got, want)
-			return
-		}
-
-		tx, _, err := client.TransactionByHash(ctx, common.HexToHash(rr.Body.String()))
-		if err != nil {
-			t.Fatal(err)
-			return
-		}
-
-		if common.Bytes2Hex(tx.Data()) != "abcdef" {
-			t.Errorf("tx data = %v, want %v", common.Bytes2Hex(tx.Data()), "abcdef")
 			return
 		}
 	})
