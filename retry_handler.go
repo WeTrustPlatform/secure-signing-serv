@@ -95,6 +95,7 @@ func retryHandler(
 		}
 
 		oldTx.Hash = signedTx.Hash().String()
+		oldTx.GasPrice = gp.String()
 		db.Save(oldTx)
 
 		log.WithFields(log.Fields{
