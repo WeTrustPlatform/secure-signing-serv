@@ -34,7 +34,7 @@ Calling a smart contract method:
 
 Retrying a transaction with higher gas price:
 
-    curl -X POST "http://your-api-key:your-api-secret@localhost:3005/v1/proxy/transactions/retry" -H "Content-Type: application/json" --data '{"hash":"0x9a08c7c158b6d0bdf43cd2af6e78892edf01e25a4306f3063ab610a48d0e5c0b","gasPrice":"20000000000"}'
+    curl -X PATCH "http://your-api-key:your-api-secret@localhost:3005/v1/proxy/transactions/0x9a08c7c158b6d0bdf43cd2af6e78892edf01e25a4306f3063ab610a48d0e5c0b" -H "Content-Type: application/json" --data '{"op":"replace","path":"/gasPrice","value":"20000000000"}'
 
 ## Whitelisting transactions
 

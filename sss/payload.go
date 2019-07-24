@@ -8,8 +8,9 @@ type TxPayload struct {
 	Data     string `json:"data"`     // hex encoded data, optional
 }
 
-// RetryPayload to unmarshal payload when retrying a transaction
+// RetryPayload to unmarshal payload when patching a transaction
 type RetryPayload struct {
-	Hash     string `json:"hash"`     // transaction hash
-	GasPrice string `json:"gasPrice"` // new gas price
+	Op    string `json:"op"`    // operation
+	Path  string `json:"path"`  // path to operate on
+	Value string `json:"value"` // new value
 }

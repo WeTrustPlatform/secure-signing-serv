@@ -58,7 +58,7 @@ func main() {
 		key.PrivateKey,
 		db)))
 
-	http.HandleFunc("/v1/proxy/transactions/retry", basicAuth(retryHandler(
+	http.HandleFunc("/v1/proxy/transactions/*", basicAuth(retryHandler(
 		client,
 		signer,
 		rules,

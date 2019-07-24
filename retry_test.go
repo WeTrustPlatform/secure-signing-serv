@@ -47,11 +47,11 @@ func Test_retry(t *testing.T) {
 		h := txHandler(client, signer, rules, owner.From, ownerKey, db)
 		rr := httptest.NewRecorder()
 		h.ServeHTTP(rr, req)
+		client.Rollback()
 
 		if rr.Code != 200 {
 			t.Errorf("response code = %v, want %v", rr.Code, 200)
 		}
-		client.Rollback()
 
 		want := big.NewInt(0)
 		if got, _ := client.BalanceAt(context.Background(), tester.From, nil); !reflect.DeepEqual(got, want) {
@@ -62,10 +62,10 @@ func Test_retry(t *testing.T) {
 		// Retry
 
 		hash := rr.Body.String()
-		rp := sss.RetryPayload{Hash: hash, GasPrice: "2"}
+		rp := sss.RetryPayload{Op: "replace", Path: "/gasPrice", Value: "2"}
 		rb := new(bytes.Buffer)
 		json.NewEncoder(rb).Encode(rp)
-		rreq, err := http.NewRequest("POST", "/v1/proxy/transactions/retry", rb)
+		rreq, err := http.NewRequest("PATCH", "/v1/proxy/transactions/"+hash, rb)
 		if err != nil {
 			t.Fatal(err)
 			return

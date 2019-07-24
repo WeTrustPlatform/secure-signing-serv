@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"math/big"
 	"net/http"
+	"strings"
 
 	"github.com/WeTrustPlatform/secure-signing-serv/sss"
 	"github.com/ethereum/go-ethereum/common"
@@ -23,8 +24,14 @@ func retryHandler(
 	db Recorder,
 ) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var ok bool
 		ctx := context.Background()
+
+		if r.Method != "PATCH" {
+			http.Error(w, "retry only supports PATCH method", http.StatusMethodNotAllowed)
+			return
+		}
+
+		hash := strings.TrimPrefix(r.URL.Path, "/v1/proxy/transactions/")
 
 		decoder := json.NewDecoder(r.Body)
 		var p sss.RetryPayload
@@ -34,14 +41,19 @@ func retryHandler(
 			return
 		}
 
-		gp, ok := big.NewInt(0).SetString(p.GasPrice, 10)
+		if p.Op != "replace" || p.Path != "/gasPrice" {
+			http.Error(w, "only replacing gasPrice is supported", http.StatusBadRequest)
+			return
+		}
+
+		gp, ok := big.NewInt(0).SetString(p.Value, 10)
 		if !ok {
 			http.Error(w, "couldn't convert gasPrice to big.Int", http.StatusBadRequest)
 			return
 		}
 
 		oldTx := transaction{}
-		db.First(&oldTx, "hash = ?", p.Hash)
+		db.First(&oldTx, "hash = ?", hash)
 
 		var tx *types.Transaction
 		if oldTx.To != "" {
