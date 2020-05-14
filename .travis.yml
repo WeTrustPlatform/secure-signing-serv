@@ -1,5 +1,6 @@
 branches:
   only:
+    - develop
     - master
 
 language: go
