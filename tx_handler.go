@@ -88,8 +88,11 @@ func txHandler(
 				"GasPrice": gp.String(),
 				"error":    err.Error(),
 			}).Error("Error estimating gas.")
-			http.Error(w, "error estimating gas: "+err.Error(), http.StatusInternalServerError)
-			return
+			// HOTFIX: capping gas under allowance
+			// TODO: Investigate why EstimateGas returns high number
+			//http.Error(w, "error estimating gas: "+err.Error(), http.StatusInternalServerError)
+			//return
+			gas = 7000000
 		}
 
 		nonce, err := client.PendingNonceAt(ctx, owner)
