@@ -81,12 +81,27 @@ func txHandler(
 			Data:  data,
 		})
 		if err != nil {
+			log.WithFields(log.Fields{
+				"To":       p.To,
+				"Value":    value.String(),
+				"Gas":      gas,
+				"GasPrice": gp.String(),
+				"error":    err.Error(),
+			}).Error("Error estimating gas.")
 			http.Error(w, "error estimating gas: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		nonce, err := client.PendingNonceAt(ctx, owner)
 		if err != nil {
+			log.WithFields(log.Fields{
+				"Nonce":    nonce,
+				"To":       p.To,
+				"Value":    value.String(),
+				"Gas":      gas,
+				"GasPrice": gp.String(),
+				"error":    err.Error(),
+			}).Error("Error getting pending nonce.")
 			http.Error(w, "error getting pending nonce: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -100,6 +115,14 @@ func txHandler(
 
 		valid, err := validate(rules, tx)
 		if err != nil {
+			log.WithFields(log.Fields{
+				"Nonce":    nonce,
+				"To":       p.To,
+				"Value":    value.String(),
+				"Gas":      gas,
+				"GasPrice": gp.String(),
+				"error":    err.Error(),
+			}).Error("Error validating transaction.")
 			http.Error(w, "error validating transaction: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -118,12 +141,32 @@ func txHandler(
 
 		signedTx, err := types.SignTx(tx, signer, key)
 		if err != nil {
+			// DO NOT log signedTx
+			log.WithFields(log.Fields{
+				"Nonce":    nonce,
+				"To":       p.To,
+				"Value":    value.String(),
+				"Gas":      gas,
+				"GasPrice": gp.String(),
+				"Hash":     signedTx.Hash().String(),
+				"error":    err.Error(),
+			}).Error("Error types.SignTx.")
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		err = client.SendTransaction(ctx, signedTx)
 		if err != nil {
+			// DO NOT log signedTx
+			log.WithFields(log.Fields{
+				"Nonce":    nonce,
+				"To":       p.To,
+				"Value":    value.String(),
+				"Gas":      gas,
+				"GasPrice": gp.String(),
+				"Hash":     signedTx.Hash().String(),
+				"error":    err.Error(),
+			}).Error("Error client.sendTransaction.")
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
